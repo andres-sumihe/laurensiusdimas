@@ -31,7 +31,8 @@ yarn-error.log
 .DS_Store
 Thumbs.db
 
-# DONT REMOVE THESE
+# DONT REMOVE THESE - Upload via FTP, not Git (security)
 .listing
-# .htaccess  # Now tracked for deployment
+.htaccess
+public/.htaccess
 docs/*

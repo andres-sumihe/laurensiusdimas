@@ -1,0 +1,41 @@
+Options +SymLinksIfOwnerMatch
+RewriteEngine On
+
+# Allow Installatron requests
+RewriteCond %{REQUEST_FILENAME} deleteme\.\w+\.php
+RewriteRule (.*) - [L]
+
+# Redirect all requests to public/ folder
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ /public/$1 [L]
+AddType application/json                            json map topojson
+AddType application/ld+json                         jsonld
+AddType application/vnd.geo+json                    geojson
+AddType application/xml                             atom rdf rss xml
+AddType application/javascript                      js
+AddType application/x-web-app-manifest+json         webapp
+AddType text/cache-manifest                         appcache manifest
+AddType audio/mp4                                   f4a f4b m4a
+AddType audio/ogg                                   oga ogg opus
+AddType image/bmp                                   bmp
+AddType image/webp                                  webp
+AddType video/mp4                                   f4v f4p m4v mp4
+AddType video/ogg                                   ogv
+AddType video/webm                                  webm
+AddType video/x-flv                                 flv
+AddType image/svg+xml                               svg svgz
+AddType image/x-icon                                cur ico
+AddType application/font-woff                       woff
+AddType application/font-woff2                      woff2
+AddType application/vnd.ms-fontobject               eot
+AddType application/x-font-ttf                      ttc ttf
+AddType font/opentype                               otf
+AddType application/octet-stream                    safariextz
+AddType application/x-bb-appworld                   bbaw
+AddType application/x-chrome-extension              crx
+AddType application/x-opera-extension               oex
+AddType application/x-xpinstall                     xpi
+AddType text/vcard                                  vcard vcf
+AddType text/vnd.rim.location.xloc                  xloc
+AddType text/vtt                                    vtt
+AddType text/x-component                            htc

@@ -33,5 +33,5 @@ Thumbs.db
 
 # DONT REMOVE THESE
 .listing
-.htaccess
+# .htaccess  # Now tracked for deployment
 docs/*

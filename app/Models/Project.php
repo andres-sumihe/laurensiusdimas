@@ -15,6 +15,7 @@ class Project extends Model
         'subtitle',
         'description',
         'layout',
+        'section',
         'media_items',
         'is_visible',
         'sort_order',

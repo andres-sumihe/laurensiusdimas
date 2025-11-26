@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "project": "Creative Portfolio & Integrated CMS",
+    "date": "2025-11-19",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "A unified web application combining a high-performance public portfolio site with an integrated administration dashboard for managing creative projects, clients, and global site settings. Built on Laravel with Livewire and FilamentPHP, it offers a seamless content management experience and dynamic portfolio presentation.",
+  "core_goals": [
+    "Provide a visually appealing and responsive public portfolio showcasing projects with media support and client endorsements.",
+    "Enable efficient content management with an intuitive admin dashboard for creating, editing, and organizing portfolio projects and client logos.",
+    "Centralize global site configurations for hero sections, SEO settings, and contact information to streamline site maintenance without code changes.",
+    "Ensure high performance and smooth user experience with lazy loading media, auto-playing videos, and responsive grid layouts.",
+    "Implement security and visibility controls to manage published vs draft content effectively."
+  ],
+  "key_features": [
+    "Public Landing Page with hero video, project gallery in dynamic grid layouts, client carousel, and footer with contact info.",
+    "Project Management CRUD with rich text description, media upload (images, videos), drag-and-drop media and project ordering, SEO metadata, and visibility toggles.",
+    "Client Management CRUD for uploading logos, reordering carousel display, setting website URLs, and visibility toggles.",
+    "Global Site Settings singleton for managing hero content, social links, SEO defaults, and profile information.",
+    "Media storage supporting local filesystem management with external URL resolution checks.",
+    "Responsive UI components using Tailwind CSS, Blade templates, Livewire, and Alpine.js.",
+    "Admin panel powered by FilamentPHP for rapid resource management with listing, creating, editing, and deleting operations."
+  ],
+  "user_flow_summary": [
+    "Public visitors land on the portfolio homepage where they see an auto-playing hero video, followed by projects displayed in a responsive grid with media cards and a client logos carousel.",
+    "Visitors interact with media cards to view high-resolution images or videos in a lightbox/modal interface.",
+    "Admin users log into the FilamentPHP admin dashboard to manage projects: create new entries, upload and reorder media, set SEO metadata, and toggle visibility between draft and published.",
+    "Admin users manage client logos by uploading images, setting optional website links, and ordering the carousel display.",
+    "Site administrators update global site settings such as hero video, profile bio, social links, and SEO defaults via a centralized settings page.",
+    "Changes made in the admin dashboard are immediately reflected on the public site with optimistic UI updates where applicable."
+  ],
+  "validation_criteria": [
+    "Public portfolio renders correctly with videos auto-playing and media images displayed in appropriate grid layouts.",
+    "Drag-and-drop reordering of projects and media items persist and reflect in the frontend display order.",
+    "Admin CRUD operations (create, edit, delete) for projects, clients, and site settings function without errors.",
+    "Visibility toggles effectively hide draft content from public view while showing published content.",
+    "Media uploads validate file types and sizes; media URLs resolve correctly for local and external storage cases.",
+    "SEO metadata fields are saved and reflected in page meta tags in the public site.",
+    "The client logo carousel animates smoothly with configured logos and maintains responsive design.",
+    "Performance benchmarks are met for page load times and media lazy loading is implemented.",
+    "UI adheres to responsive design principles and accessibility standards.",
+    "All routes and API endpoints are secure with authentication and authorization restrictions in place."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "PHP 8.3",
+      "Laravel 12",
+      "FilamentPHP v3",
+      "Livewire v3",
+      "Alpine.js",
+      "Tailwind CSS v4",
+      "MySQL 5.7",
+      "Vite"
+    ],
+    "features": [
+      {
+        "name": "Home Page (Portfolio Landing)",
+        "description": "Single-page Livewire component that renders the public portfolio site with hero section, project gallery, client logos, and footer",
+        "files": [
+          "app/Livewire/Home.php",
+          "resources/views/livewire/home.blade.php"
+        ]
+      },
+      {
+        "name": "Project Model & Grid Layouts",
+        "description": "Portfolio projects with dynamic grid layouts (single, two, three_two, three_three, four_one, four_two) supporting images and videos",
+        "files": [
+          "app/Models/Project.php",
+          "resources/views/livewire/home.blade.php"
+        ]
+      },
+      {
+        "name": "Project Admin Resource",
+        "description": "Filament CRUD resource for managing portfolio projects with media uploads, layout selection, SEO settings, and visibility controls",
+        "files": [
+          "app/Filament/Resources/ProjectResource.php",
+          "app/Filament/Resources/ProjectResource/Pages/ListProjects.php",
+          "app/Filament/Resources/ProjectResource/Pages/CreateProject.php",
+          "app/Filament/Resources/ProjectResource/Pages/EditProject.php"
+        ]
+      },
+      {
+        "name": "Client Model & Carousel",
+        "description": "Client logos for 'Trusted By' section with logo upload, website URL, and visibility toggle",
+        "files": [
+          "app/Models/Client.php",
+          "resources/views/livewire/home.blade.php"
+        ]
+      },
+      {
+        "name": "Client Admin Resource",
+        "description": "Filament CRUD resource for managing client logos with drag-and-drop reordering",
+        "files": [
+          "app/Filament/Resources/ClientResource.php"
+        ]
+      },
+      {
+        "name": "Site Settings (Singleton)",
+        "description": "Global site configuration with hero video, headlines, profile info, social links, and SEO metadata using singleton pattern",
+        "files": [
+          "app/Models/SiteSetting.php",
+          "app/Filament/Pages/ManageSiteSettings.php"
+        ]
+      },
+      {
+        "name": "Media Storage",
+        "description": "Local filesystem storage for media files with URL resolution pattern checking for external vs local paths",
+        "files": [
+          "config/filesystems.php",
+          "app/Livewire/Home.php"
+        ]
+      },
+      {
+        "name": "App Layout",
+        "description": "Main application layout wrapper with meta tags and asset loading",
+        "files": [
+          "resources/views/components/layouts/app.blade.php"
+        ]
+      }
+    ]
+  }
+}

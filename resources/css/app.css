@@ -31,4 +31,27 @@ body {
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
     }
+
+    /* Alias for clearer semantic naming (some codebases use 'linear' terminology) */
+    .bg-linear-to-b {
+        @apply bg-gradient-to-b;
+    }
+}
+
+/* Marquee Animation for Clients Section */
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-marquee {
+    animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
 }

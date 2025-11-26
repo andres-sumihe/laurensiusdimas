@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Forms\Components\MediaLayoutPicker;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Models\Project;
@@ -42,17 +43,30 @@ class ProjectResource extends Resource
                             ->label('Category / Subtitle')
                             ->placeholder('e.g., Motion Design'),
 
+                        Forms\Components\Select::make('section')
+                            ->label('Section')
+                            ->options([
+                                'curated' => 'Curated Projects',
+                                'older' => 'Older Projects',
+                            ])
+                            ->default('curated')
+                            ->required()
+                            ->helperText('Which section this project appears in.'),
+
                         Forms\Components\Select::make('layout')
                             ->label('Layout')
                             ->options([
-                                'three_two' => '3 top, 2 bottom (5-up)',
-                                'three_two_tall' => '3 top, 2 bottom (tall lower)',
-                                'two' => '2-up split',
-                                'single' => 'Single hero',
+                                'single' => 'Single (Hero)',
+                                'two' => 'Two (Split)',
+                                'three_two' => 'Three-Two (5-Up)',
+                                'three_three' => 'Three-Three (6-Up)',
+                                'four_one' => 'Four-One (5-Up)',
+                                'four_two' => 'Four-Two (6-Up)',
                             ])
                             ->default('three_two')
                             ->required()
-                            ->helperText('Choose how media items are arranged in the project card.'),
+                            ->live()
+                            ->helperText('Choose layout first, then add media to each slot below.'),
                         
                         Forms\Components\RichEditor::make('description')
                             ->columnSpanFull()
@@ -67,33 +81,10 @@ class ProjectResource extends Resource
                     ->columns(2),
 
                 Forms\Components\Section::make('Media Gallery')
+                    ->description('Click on each slot to add/edit media. The grid reflects the selected layout.')
                     ->schema([
-                        Forms\Components\Repeater::make('media_items')
-                            ->schema([
-                                Forms\Components\Select::make('type')
-                                    ->options([
-                                        'image' => 'Image',
-                                        'video' => 'Video',
-                                    ])
-                                    ->required()
-                                    ->live(),
-                                
-                                Forms\Components\FileUpload::make('url')
-                                    ->label('File')
-                                    ->directory('projects/media')
-                                    ->image()
-                                    ->imageEditor()
-                                    ->required(),
-                                
-                                Forms\Components\FileUpload::make('thumbnailUrl')
-                                    ->label('Thumbnail (for videos)')
-                                    ->directory('projects/thumbnails')
-                                    ->image()
-                                    ->visible(fn (Forms\Get $get) => $get('type') === 'video'),
-                            ])
-                            ->reorderable()
-                            ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => $state['type'] ?? null)
+                        MediaLayoutPicker::make('media_items')
+                            ->label('')
                             ->columnSpanFull(),
                     ]),
 
@@ -150,6 +141,19 @@ class ProjectResource extends Resource
                     ->label('Category')
                     ->badge()
                     ->color('gray'),
+                
+                Tables\Columns\TextColumn::make('section')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'curated' => 'success',
+                        'older' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'curated' => 'Curated',
+                        'older' => 'Older',
+                        default => ucfirst($state),
+                    }),
                 
                 Tables\Columns\IconColumn::make('is_visible')
                     ->label('Status')

@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:8000",
+  "loginUser": "hello@laurensiusdimas.com",
+  "loginPassword": "password",
+  "executionArgs": {
+    "projectName": "laurensiusdimas",
+    "projectPath": "/Users/andres/Developer/Projects/laurensiusdimas",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-PmDWfwaKGyXlNbY0xuI7lBJkp1U4urlsXvghMfRxZLC0EXCT2ahkhVO4kTqwxeAnoTdXMDWQbitJRcUbZ5_HA670P2o8QCpY4xJDMn6tfb8JiVtP0_LY-CExzHUfSYhoiqo"
+    }
+  },
+  "proxy": "http://805a4962-7859-4277-9634-1c6fb81c00e6:CVrxBhrrMSvyVa59w5MLrX4wRB47TWiJ@tun.testsprite.com:8080"
+}

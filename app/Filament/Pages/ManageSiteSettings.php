@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\SiteSetting;
 use Filament\Forms;
+use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
@@ -68,9 +69,12 @@ class ManageSiteSettings extends Page
                             ->icon('heroicon-o-film')
                             ->schema([
                                 Forms\Components\FileUpload::make('hero_video_url')
-                                    ->label('Hero Video/GIF')
-                                    ->directory('settings/hero')
-                                    ->helperText('Upload video or GIF for the landing intro'),
+                                                    ->label('Hero Video/GIF')
+                                                    ->directory('settings/hero')
+                                                    ->preserveFilenames()
+                                                    ->maxSize(25600) // 25MB in KB
+                                                    ->acceptedFileTypes(['image/gif', 'video/mp4'])
+                                                    ->helperText('Upload video or GIF for the landing intro. Max size: 25MB. Accepts GIF or MP4.'),
                                 
                                 Forms\Components\TextInput::make('hero_headline')
                                     ->label('Headline')
@@ -153,11 +157,24 @@ class ManageSiteSettings extends Page
                                             ->label('Older Projects Heading')
                                             ->placeholder('OLDER PROJECTS'),
 
-                                        Forms\Components\TextInput::make('older_subheading')
-                                            ->label('Older Projects Subheading')
-                                            ->placeholder('2019-2023'),
+                                        Forms\Components\Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('older_year_from')
+                                                    ->label('Year From')
+                                                    ->numeric()
+                                                    ->minValue(1990)
+                                                    ->maxValue(2100)
+                                                    ->placeholder('2019'),
+                                                
+                                                Forms\Components\TextInput::make('older_year_to')
+                                                    ->label('Year To')
+                                                    ->numeric()
+                                                    ->minValue(1990)
+                                                    ->maxValue(2100)
+                                                    ->placeholder('2023'),
+                                            ]),
                                     ])
-                                    ->columns(2),
+                                    ->columns(1),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Contact')
@@ -195,6 +212,25 @@ class ManageSiteSettings extends Page
                                     ->columnSpanFull()
                                     ->helperText('Add your social media profiles'),
                             ]),
+                        Forms\Components\Tabs\Tab::make('Footer')
+                            ->icon('heroicon-o-rectangle-group')
+                            ->schema([
+                                Forms\Components\Textarea::make('footer_text')
+                                    ->label('Footer Text')
+                                    ->rows(3)
+                                    ->placeholder('Short footer copy or tagline'),
+
+                                Forms\Components\TextInput::make('footer_cta_label')
+                                    ->label('Footer CTA Label')
+                                    ->placeholder('Email me')
+                                    ->maxLength(120),
+
+                                Forms\Components\TextInput::make('footer_cta_url')
+                                    ->label('Footer CTA URL')
+                                    ->placeholder('mailto:hello@example.com or https://...')
+                                    ->maxLength(255),
+                            ])
+                            ->columns(2),
                     ])
                     ->columnSpanFull(),
             ])
@@ -205,6 +241,22 @@ class ManageSiteSettings extends Page
     {
         $data = $this->form->getState();
         
+        // Server-side check for hero file size
+        if (!empty($data['hero_video_url']) && !str_starts_with($data['hero_video_url'], 'http')) {
+            $path = $data['hero_video_url'];
+            if (Storage::disk('public')->exists($path)) {
+                $size = Storage::disk('public')->size($path);
+                if ($size > 25 * 1024 * 1024) {
+                    Notification::make()
+                        ->danger()
+                        ->title('Upload failed: File too large')
+                        ->body('Hero file is too large. Maximum allowed size is 25MB.')
+                        ->send();
+                    return;
+                }
+            }
+        }
+
         $settings = SiteSetting::current();
         $settings->update($data);
 
@@ -223,4 +275,5 @@ class ManageSiteSettings extends Page
                 ->submit('save'),
         ];
     }
+
 }

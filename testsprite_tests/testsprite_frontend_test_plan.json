@@ -1,0 +1,418 @@
+[
+  {
+    "id": "TC001",
+    "title": "Public Portfolio Homepage Load and Render",
+    "description": "Verify that the public homepage loads successfully and renders all main sections: hero video auto-playing, project gallery with media cards, client logos carousel, and footer contact info.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the public portfolio homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the hero video is present and auto-playing without user interaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the project gallery displays projects in a responsive grid layout with media thumbnails"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm presence of client logos carousel with logos visible and animating"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the footer displays contact information correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Project Media Card Interaction and Lightbox Display",
+    "description": "Ensure that clicking on a project media card opens a lightbox or modal showing the high-resolution image or playing the video.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the public portfolio homepage"
+      },
+      {
+        "type": "action",
+        "description": "Click on a project media card (image or video thumbnail)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that a lightbox or modal opens displaying the media in high resolution or auto-playing the video"
+      },
+      {
+        "type": "action",
+        "description": "Close the lightbox/modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure the main page is restored correctly with no unexpected UI artifacts"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Admin Login and Access to Filament Dashboard",
+    "description": "Verify admin users can successfully log into the FilamentPHP admin dashboard and access project and client management resources.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the admin login page"
+      },
+      {
+        "type": "action",
+        "description": "Input valid admin credentials"
+      },
+      {
+        "type": "action",
+        "description": "Submit login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful login and redirection to admin dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that project and client management menus/resources are accessible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Admin Project CRUD Operations",
+    "description": "Test creating, editing, and deleting portfolio projects with media uploads, SEO metadata, visibility toggles, and layout selection.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log into admin dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Project Management section"
+      },
+      {
+        "type": "action",
+        "description": "Create a new project with title, rich text description, media uploads (images, video), SEO metadata, and select a grid layout"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify project appears in the project list"
+      },
+      {
+        "type": "action",
+        "description": "Edit the project to change media ordering using drag-and-drop, update visibility toggle to 'Published'"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm changes are saved and reflected in admin UI"
+      },
+      {
+        "type": "action",
+        "description": "Delete the created project"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project is removed from the list"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Admin Client Logo Management CRUD",
+    "description": "Verify admin can create, edit, reorder, and delete client logos for the client carousel with website URLs and visibility toggles.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log into admin dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Client Management section"
+      },
+      {
+        "type": "action",
+        "description": "Create a new client logo with image upload, website URL, and visibility set to published"
+      },
+      {
+        "type": "assertion",
+        "description": "Check the new client logo displays in the client list"
+      },
+      {
+        "type": "action",
+        "description": "Reorder client logos using drag-and-drop"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm order change persists after save and on public site"
+      },
+      {
+        "type": "action",
+        "description": "Edit client details to update URL and toggle visibility to draft"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify visibility toggle hides client logo from public carousel"
+      },
+      {
+        "type": "action",
+        "description": "Delete the created client logo"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm client logo removed from list and public carousel if published"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Global Site Settings Management and Reflection",
+    "description": "Test updating global site settings such as hero video, profile bio, social links, and SEO defaults via the admin singleton settings page and verify changes reflect on the public site.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login to admin dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Access the Global Site Settings page"
+      },
+      {
+        "type": "action",
+        "description": "Update hero video URL, profile bio text, add or remove social links, and modify default SEO metadata"
+      },
+      {
+        "type": "action",
+        "description": "Save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify success confirmation message"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to public portfolio homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Check the updated hero video loads and plays automatically"
+      },
+      {
+        "type": "assertion",
+        "description": "Profile bio and social links appear correctly in the site footer or appropriate locations"
+      },
+      {
+        "type": "assertion",
+        "description": "SEO metadata changes are present in the page source meta tags"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Draft and Published Content Visibility Control",
+    "description": "Validate that projects and client logos marked as draft are not visible on the public site, whereas published content is publicly accessible.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as admin and create a new project and client logo set to draft visibility"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm draft project and client logo are listed in admin with correct visibility status"
+      },
+      {
+        "type": "action",
+        "description": "Visit public portfolio homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that draft project and client logo are not visible anywhere in the public UI"
+      },
+      {
+        "type": "action",
+        "description": "Change visibility to published for both items in admin and save"
+      },
+      {
+        "type": "assertion",
+        "description": "Reload public portfolio homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the project appears in the project gallery and client logo in the carousel"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Media Upload Validation and URL Resolution",
+    "description": "Verify media upload functionality allows supported image and video file types within size limits, and that media URLs resolve correctly for both local filesystem storage and external URLs.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "In admin project creation, attempt to upload valid image and video files within allowed size ranges"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm files are accepted and uploaded successfully"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload unsupported file types and files exceeding size limits"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an error message is displayed and upload is rejected"
+      },
+      {
+        "type": "action",
+        "description": "Set media URLs manually to external URLs and to local storage paths"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure URL resolution logic correctly differentiates and handles external vs local media links on public site"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Project and Client Drag-and-Drop Reordering Persistence",
+    "description": "Confirm that drag-and-drop reordering of projects and client logos in admin interface persists on save and is accurately reflected in the frontend display order.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login to admin dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to project management section"
+      },
+      {
+        "type": "action",
+        "description": "Reorder projects using drag-and-drop and save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify order saved confirmation"
+      },
+      {
+        "type": "action",
+        "description": "Visit public portfolio homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify projects display in the new order"
+      },
+      {
+        "type": "action",
+        "description": "Repeat steps for client logos in client management"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Performance Benchmark for Page Load and Media Lazy Loading",
+    "description": "Validate that the portfolio homepage meets defined performance benchmarks for page load times and that media elements (images/videos) implement lazy loading to optimize user experience.",
+    "category": "performance",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the public homepage on a standard user connection"
+      },
+      {
+        "type": "assertion",
+        "description": "Measure page load time and verify it meets performance criteria"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that project media images and videos are lazy-loaded and not all loaded at initial page render"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that auto-playing videos in hero and project gallery start playing promptly once in viewport"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Responsive UI and Accessibility Compliance",
+    "description": "Verify that the application UI is responsive across common device screen sizes and meets accessibility standards such as proper alt text, keyboard navigation, and ARIA attributes.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access the public homepage on multiple viewport sizes (mobile, tablet, desktop)"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm UI components (hero video, project grid, client carousel, footer) adjust layout appropriately and remain usable"
+      },
+      {
+        "type": "action",
+        "description": "Use keyboard navigation to tab through interactive elements on the homepage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all interactive elements have visible focus indicators and are accessible"
+      },
+      {
+        "type": "assertion",
+        "description": "Inspect images and media elements have meaningful alt attributes"
+      },
+      {
+        "type": "assertion",
+        "description": "Check ARIA roles and labels are present where appropriate"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Security: Route and Endpoint Access Control",
+    "description": "Ensure all admin routes and API endpoints are secured with authentication and authorization checks, preventing unauthorized access.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to access admin dashboard and sensitive CRUD URLs without being authenticated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify redirection to login page or access denied response"
+      },
+      {
+        "type": "action",
+        "description": "Login as a user without admin privileges and attempt access to admin routes"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access denied or forbidden response"
+      },
+      {
+        "type": "action",
+        "description": "Login as admin and verify access to all expected routes and API endpoints"
+      }
+    ]
+  }
+]

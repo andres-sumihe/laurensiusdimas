@@ -1,55 +1,77 @@
 @php
+    use Illuminate\Support\Facades\Storage;
+    
     $portfolioHeading = $settings->portfolio_heading ?? 'CURATED PROJECTS';
-    $portfolioSubheading = $settings->portfolio_subheading ?? null;
-    $corporateHeading = $settings->corporate_heading ?? 'CORPORATE PROJECTS';
-    $corporateSubheading = $settings->corporate_subheading ?? 'ESCO LIFESCIENCES GROUP';
     $olderHeading = $settings->older_heading ?? 'OLDER PROJECTS';
-    $olderSubheading = $settings->older_subheading ?? '2019-2023';
+    $corporateHeading = $settings->corporate_heading ?? 'CORPORATE PROJECTS';
+    $corporateSubheading = $settings->corporate_subheading ?? '';
+    
+    // Build older year range string
+    $olderYearFrom = $settings->older_year_from ?? 2019;
+    $olderYearTo = $settings->older_year_to ?? 2023;
+    $olderYearRange = $olderYearFrom . '-' . $olderYearTo;
 
-    $heroFluidDefault = 'https://laurensiusdimas.my.canva.site/_assets/video/c35e66dcc624edcf5432e90a8bc96345.gif';
-    $heroMediaUrl = $settings->hero_video_url
+    // Hero blob - animated GIF from Canva (default)
+    $heroBlobDefault = 'https://laurensiusdimas.my.canva.site/_assets/video/c35e66dcc624edcf5432e90a8bc96345.gif';
+    $heroBlobUrl = $settings->hero_video_url
         ? (str_starts_with($settings->hero_video_url, 'http')
             ? $settings->hero_video_url
             : Storage::url($settings->hero_video_url))
-        : $heroFluidDefault;
+        : $heroBlobDefault;
 
     $heroTitle = strtoupper($settings->hero_headline ?? 'LAURENSIUS DIMAS');
-    $heroSubtitle = 'VFX Enthusiast  |  3D Generalist  |  Sound Design';
-    $profilePicture = $settings->profile_picture_url
+    $heroSubtitle = $settings->hero_subheadline ?? 'VFX Enthusiast  |  3D Generalist  |  Sound Design';
+
+    // Profile / Contact
+    $profilePicUrl = $settings->profile_picture_url
         ? (str_starts_with($settings->profile_picture_url, 'http')
             ? $settings->profile_picture_url
             : Storage::url($settings->profile_picture_url))
         : null;
+    $bioShort = $settings->bio_short ?? null;
+    $bioLong = $settings->bio_long ?? null;
+    $contactEmail = $settings->email ?? null;
+    $socialLinks = $settings->social_links ?? [];
+    $footerText = $settings->footer_text ?? null;
+    $footerCtaLabel = $settings->footer_cta_label ?? null;
+    $footerCtaUrl = $settings->footer_cta_url ?? null;
+    
+    // Corporate Projects
+    $corporateProjects = \App\Models\Project::where('is_visible', true)
+        ->where('section', 'corporate')
+        ->orderBy('sort_order')
+        ->get();
 @endphp
 
 <div class="min-h-screen bg-black text-white">
-    {{-- Hero --}}
-    <section class="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
+    {{-- ========================================
+         HERO SECTION - Animated Blob Background
+    ========================================= --}}
+    <section class="relative flex min-h-screen items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-black"></div>
 
         <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            @if(str_ends_with($heroMediaUrl, '.gif'))
+            @php
+                $isImage = preg_match('/\.(gif|png|jpe?g|webp|svg)$/i', $heroBlobUrl);
+            @endphp
+            @if($isImage)
                 <img
-                    src="{{ $heroMediaUrl }}"
-                    alt="Hero blob"
-                    class="max-h-[520px] w-auto opacity-70 saturate-[0.7] brightness-[0.45]"
-                    loading="lazy"
+                    src="{{ $heroBlobUrl }}"
+                    alt="Animated blob"
+                    class="max-h-[520px] w-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
                 >
             @else
                 <video
-                    class="max-h-[520px] w-auto opacity-70 saturate-[0.7] brightness-[0.45]"
-                    autoplay
-                    muted
-                    loop
-                    playsinline
+                    class="max-h-[520px] w-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    autoplay muted loop playsinline
                 >
-                    <source src="{{ $heroMediaUrl }}" type="video/mp4">
+                    <source src="{{ $heroBlobUrl }}" type="video/mp4">
                 </video>
             @endif
-            <div class="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/60"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
         </div>
 
-        <div class="relative z-10 text-center space-y-4">
+        <div class="relative z-10 text-left space-y-4 px-6">
             <h1 class="font-display text-5xl md:text-6xl lg:text-7xl xl:text-[92px] tracking-[0.05em] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
                 {{ $heroTitle }}
             </h1>
@@ -59,226 +81,228 @@
         </div>
     </section>
 
-    {{-- Portfolio --}}
-    <section class="bg-white text-black px-6 md:px-8 py-16">
-        <div class="w-full space-y-10" style="max-width: 760px; margin: 0 auto;">
-            <div class="flex items-center gap-6">
-                <span class="font-display text-3xl md:text-4xl lg:text-[38px] uppercase tracking-[0.08em] text-[#4a4a4a]">
-                    {{ $portfolioHeading }}
+    {{-- ========================================
+         ABOUT SECTION - Enhanced Layout
+    ========================================= --}}
+    @if($bioShort || $bioLong || $profilePicUrl)
+    <section class="bg-white text-black px-4 md:px-8 py-20">
+        <div class="w-full mx-auto" style="max-width: 760px;">
+            {{-- Section Header --}}
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px;">
+                <span style="font-family: var(--font-display, serif); font-size: clamp(24px, 4vw, 38px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
+                    About
                 </span>
-                <div class="h-[3px] flex-1 bg-[#4a4a4a]"></div>
+                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
             </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+                {{-- Profile Photo (Left) --}}
+                @if($profilePicUrl)
+                <div class="md:col-span-4 order-1 md:order-1">
+                    <div class="relative group">
+                        <div class="absolute inset-0 bg-gray-100 transform translate-x-2 translate-y-2 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"></div>
+                        <img 
+                            src="{{ $profilePicUrl }}" 
+                            alt="Profile" 
+                            class="relative w-full aspect-[3/4] object-cover grayscale group-hover:grayscale-0 transition-all duration-500 shadow-sm"
+                            loading="lazy"
+                        >
+                    </div>
+                </div>
+                @endif
 
-            <div class="space-y-10">
-                @foreach($projects as $project)
-                    @php
-                        $layoutRaw = $project->layout ?? 'three_two';
-                        // Back-compat with previous layout names
-                        $layout = match ($layoutRaw) {
-                            'collage_3_2' => 'three_two',
-                            'default' => 'single',
-                            'full' => 'single',
-                            'split' => 'two',
-                            default => $layoutRaw,
-                        };
-                        $mediaItems = collect($project->media_items ?? [])->map(function ($item) {
-                            $url = $item['url'] ?? null;
-                            $thumb = $item['thumbnailUrl'] ?? null;
-                            return [
-                                'type' => $item['type'] ?? 'image',
-                                'url' => $url ? (str_starts_with($url, 'http') ? $url : Storage::url($url)) : null,
-                                'thumb' => $thumb ? (str_starts_with($thumb, 'http') ? $thumb : Storage::url($thumb)) : null,
-                            ];
-                        })->filter(fn ($m) => $m['url'])->values();
-
-                        $gridClass = match ($layout) {
-                            'three_two' => 'grid-cols-3 grid-rows-2',
-                            'three_two_tall' => 'grid-cols-3 grid-rows-2',
-                            'two' => 'grid-cols-2 grid-rows-1',
-                            'single' => 'grid-cols-1 grid-rows-1',
-                            default => 'grid-cols-3 grid-rows-2',
-                        };
-
-                        $gridHeight = match ($layout) {
-                            'three_two' => 'h-[240px] md:h-[280px]',
-                            'three_two_tall' => 'h-[280px] md:h-[340px]',
-                            'two' => 'h-[240px] md:h-[300px]',
-                            'single' => '',
-                            default => 'h-[240px] md:h-[280px]',
-                        };
-                    @endphp
-
-                    <article class="space-y-3">
-                        @if($layout === 'single' || $mediaItems->count() <= 2)
-                            @php $item = $mediaItems->first(); @endphp
-                            @if($item)
-                                <div class="w-full overflow-hidden bg-neutral-100">
-                                    <div class="aspect-[16/9]">
-                                        @if($item['type'] === 'video')
-                                            <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                                                <source src="{{ $item['url'] }}" type="video/mp4">
-                                            </video>
-                                        @else
-                                            <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif
-                        @else
-                            <div class="grid {{ $gridClass }} {{ $gridHeight }} gap-2 md:gap-3 w-full">
-                                @foreach($mediaItems as $index => $item)
-                                    @php
-                                        // Explicit grid positioning for each layout
-                                        $gridPos = '';
-                                        if ($layout === 'three_two') {
-                                            // First 3 items: col-span 2, row 1
-                                            // Items 4-5: col-span 3, row 2
-                                            if ($index === 0) $gridPos = 'col-start-1 col-end-3 row-start-1 row-end-2';
-                                            elseif ($index === 1) $gridPos = 'col-start-3 col-end-5 row-start-1 row-end-2';
-                                            elseif ($index === 2) $gridPos = 'col-start-5 col-end-7 row-start-1 row-end-2';
-                                            elseif ($index === 3) $gridPos = 'col-start-1 col-end-4 row-start-2 row-end-3';
-                                            elseif ($index === 4) $gridPos = 'col-start-4 col-end-7 row-start-2 row-end-3';
-                                        } elseif ($layout === 'three_two_tall') {
-                                            // First 3 items: col-span 2, row 1
-                                            // Items 4-5: col-span 3, row 2 (taller)
-                                            if ($index === 0) $gridPos = 'col-start-1 col-end-3 row-start-1 row-end-2';
-                                            elseif ($index === 1) $gridPos = 'col-start-3 col-end-5 row-start-1 row-end-2';
-                                            elseif ($index === 2) $gridPos = 'col-start-5 col-end-7 row-start-1 row-end-2';
-                                            elseif ($index === 3) $gridPos = 'col-start-1 col-end-4 row-start-2 row-end-3';
-                                            elseif ($index === 4) $gridPos = 'col-start-4 col-end-7 row-start-2 row-end-3';
-                                        } elseif ($layout === 'two') {
-                                            // 2 items side by side
-                                            if ($index === 0) $gridPos = 'col-start-1 col-end-2 row-start-1 row-end-2';
-                                            elseif ($index === 1) $gridPos = 'col-start-2 col-end-3 row-start-1 row-end-2';
-                                        }
-                                    @endphp
-                                    <div class="overflow-hidden bg-neutral-100 {{ $gridPos }}">
-                                        @if($item['type'] === 'video')
-                                            <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                                                <source src="{{ $item['url'] }}" type="video/mp4">
-                                            </video>
-                                        @else
-                                            <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                                        @endif
-                                    </div>
-                                @endforeach
+                {{-- Text Content (Right) --}}
+                <div class="{{ $profilePicUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-8 order-2 md:order-2">
+                    
+                    {{-- Bio --}}
+                    <div class="space-y-6 text-gray-600 leading-relaxed">
+                        @if($bioShort)
+                            <p class="text-lg font-medium text-gray-800">
+                                {{ $bioShort }}
+                            </p>
+                        @endif
+                        
+                        @if($bioLong)
+                            <div class="text-sm md:text-base text-gray-500">
+                                {!! $bioLong !!}
                             </div>
                         @endif
+                    </div>
+                    
+                    {{-- Links --}}
+                    <div class="flex flex-wrap items-center gap-6 pt-2">
+                        @if($settings->resume_url)
+                            <a
+                                href="{{ str_starts_with($settings->resume_url, 'http') ? $settings->resume_url : Storage::url($settings->resume_url) }}"
+                                target="_blank"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#363439] text-white text-sm font-medium tracking-wide hover:bg-black transition-colors"
+                            >
+                                <span>RESUME</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            </a>
+                        @endif
+                        
+                        @if($contactEmail)
+                            <a href="mailto:{{ $contactEmail }}" class="group inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-black transition-colors">
+                                <span>{{ $contactEmail }}</span>
+                                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
 
-                        <div class="space-y-1">
-                            <h3 class="font-display text-2xl md:text-3xl uppercase text-[#363439]">
-                                {{ strtoupper($project->title) }}
-                            </h3>
-                            @if($project->subtitle)
-                                <p class="text-[10px] uppercase tracking-[0.28em] text-gray-600">
-                                    {{ $project->subtitle }}
-                                </p>
-                            @endif
-                        </div>
-                    </article>
+    {{-- ========================================
+         CURATED PROJECTS SECTION
+    ========================================= --}}
+    @if($curatedProjects->count() > 0)
+    <section class="bg-white text-black px-4 md:px-8 py-16">
+        <div class="w-full mx-auto" style="max-width: 760px;">
+            {{-- Section Header --}}
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 48px;">
+                <span style="font-family: var(--font-display, serif); font-size: clamp(24px, 4vw, 38px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
+                    {{ $portfolioHeading }}
+                </span>
+                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+            </div>
+
+            {{-- Projects Grid --}}
+            <div style="display: flex; flex-direction: column; gap: 48px;">
+                @foreach($curatedProjects as $project)
+                    @include('livewire.partials.project-card', ['project' => $project])
                 @endforeach
             </div>
         </div>
     </section>
-
-    {{-- Corporate + Archive --}}
-    @if($clients->count() > 0 || $corporateHeading || $olderHeading)
-        <section class="bg-white text-black px-6 md:px-12 pb-32">
-            <div class="max-w-[1140px] mx-auto">
-                {{-- Corporate Section --}}
-                <div class="mb-32">
-                    <div class="flex flex-col md:flex-row md:items-end gap-4 mb-16 border-b border-black/10 pb-6">
-                        <h2 class="font-display text-3xl md:text-4xl uppercase text-[#363439]">
-                            {{ $corporateHeading }}
-                        </h2>
-                        @if($corporateSubheading)
-                            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 md:mb-1 md:ml-4">
-                                {{ $corporateSubheading }}
-                            </p>
-                        @endif
-                    </div>
-
-                    @if($clients->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
-                            @foreach($clients as $index => $client)
-                                @php
-                                    $logo = $client->logo_url
-                                        ? (str_starts_with($client->logo_url, 'http') ? $client->logo_url : Storage::url($client->logo_url))
-                                        : null;
-                                    // Stagger effect
-                                    $marginTop = ($index % 3 === 1) ? 'md:mt-16' : (($index % 3 === 2) ? 'md:mt-32' : '');
-                                @endphp
-                                <div class="group {{ $marginTop }}">
-                                    <div class="aspect-[4/3] flex items-center justify-center p-8 bg-neutral-50 mb-6 transition-colors duration-300 group-hover:bg-neutral-100">
-                                        @if($client->website_url)
-                                            <a href="{{ $client->website_url }}" target="_blank" rel="noopener noreferrer" class="block w-full h-full flex items-center justify-center">
-                                                @if($logo)
-                                                    <img src="{{ $logo }}" alt="{{ $client->name }}" class="max-h-16 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity" loading="lazy">
-                                                @else
-                                                    <span class="font-display text-xl text-gray-400 group-hover:text-black">{{ $client->name }}</span>
-                                                @endif
-                                            </a>
-                                        @else
-                                            @if($logo)
-                                                <img src="{{ $logo }}" alt="{{ $client->name }}" class="max-h-16 w-auto object-contain opacity-80" loading="lazy">
-                                            @else
-                                                <span class="font-display text-xl text-gray-400">{{ $client->name }}</span>
-                                            @endif
-                                        @endif
-                                    </div>
-                                    <h4 class="font-display text-xl uppercase text-[#363439]">{{ $client->name }}</h4>
-                                    <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mt-1">Client</p>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Older Projects --}}
-                <div>
-                    <div class="flex flex-col md:flex-row md:items-end gap-4 mb-12 border-b border-black/10 pb-6">
-                        <h2 class="font-display text-3xl md:text-4xl uppercase text-[#363439]">
-                            {{ $olderHeading }}
-                        </h2>
-                        @if($olderSubheading)
-                            <p class="text-sm font-bold uppercase tracking-widest text-gray-400 md:mb-1 md:ml-4">
-                                {{ $olderSubheading }}
-                            </p>
-                        @endif
-                    </div>
-                    
-                    {{-- Simple list for older projects if we had them, or just a placeholder --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {{-- Placeholder for Older Projects since we don't have a separate model yet --}}
-                        <div class="p-6 border border-gray-100 bg-neutral-50">
-                            <h4 class="font-display text-lg uppercase text-[#363439]">2019-2023 Archive</h4>
-                            <p class="text-xs text-gray-500 mt-2">Various motion graphics and 3D projects.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
     @endif
 
-    {{-- Footer --}}
-    <footer class="bg-white text-black px-6 pb-10">
-        <div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 text-sm text-gray-600 sm:flex-row sm:items-center">
-            <p>© {{ date('Y') }} {{ $settings->site_title ?? 'Laurensius Dimas' }}.</p>
+    {{-- OLDER PROJECTS --}}
+    @if($olderProjects->count() > 0)
+    <section class="bg-white text-black px-4 md:px-8 py-14">
+        <div class="w-full mx-auto" style="max-width: 760px;">
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
+                <span style="font-family: var(--font-display, serif); font-size: clamp(22px, 4vw, 36px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
+                    {{ $olderHeading }}
+                </span>
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #9ca3af;">
+                    {{ $olderYearRange ?? '' }}
+                </span>
+                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 36px;">
+                @foreach($olderProjects as $project)
+                    @include('livewire.partials.project-card', ['project' => $project])
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
 
-            @if($settings->social_links && count($settings->social_links) > 0)
-                <div class="flex flex-wrap gap-4">
-                    @foreach($settings->social_links as $link)
-                        <a
-                            href="{{ $link['url'] }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-sm uppercase tracking-[0.2em] text-gray-700 transition hover:text-black"
-                        >
-                            {{ $link['platform'] }}
-                        </a>
+    {{-- CLIENTS / TRUSTED BY (Marquee with consistent header style) --}}
+    @if($clients->count() > 0)
+    <section class="bg-white text-black px-4 md:px-8 py-16">
+        <div class="w-full mx-auto" style="max-width: 760px;">
+            {{-- Section Header - Matching Curated/Older Projects style --}}
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 40px;">
+                <span style="font-family: var(--font-display, serif); font-size: clamp(22px, 4vw, 36px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
+                    Trusted By
+                </span>
+                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+            </div>
+            
+            {{-- Marquee Container --}}
+            <div class="relative overflow-hidden py-4">
+                {{-- Fade edges --}}
+                <div class="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10"></div>
+                <div class="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10"></div>
+                
+                {{-- Scrolling Track --}}
+                <div class="flex items-center gap-16 whitespace-nowrap animate-marquee">
+                    @foreach($clients as $client)
+                        @php
+                            $logoUrl = $client->logo_url
+                                ? (str_starts_with($client->logo_url, 'http')
+                                    ? $client->logo_url
+                                    : Storage::url($client->logo_url))
+                                : null;
+                        @endphp
+                        <div class="flex-shrink-0 flex items-center justify-center px-2">
+                            @if($logoUrl)
+                                <img 
+                                    src="{{ $logoUrl }}" 
+                                    alt="{{ $client->name }}" 
+                                    style="height: 40px; width: auto; max-width: 120px;" 
+                                    class="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
+                                    loading="lazy"
+                                >
+                            @else
+                                <span class="text-base font-semibold text-[#4a4a4a] opacity-50 hover:opacity-100 transition-opacity">{{ $client->name }}</span>
+                            @endif
+                        </div>
+                    @endforeach
+                    {{-- Duplicate for seamless loop --}}
+                    @foreach($clients as $client)
+                        @php
+                            $logoUrl = $client->logo_url
+                                ? (str_starts_with($client->logo_url, 'http')
+                                    ? $client->logo_url
+                                    : Storage::url($client->logo_url))
+                                : null;
+                        @endphp
+                        <div class="flex-shrink-0 flex items-center justify-center px-2">
+                            @if($logoUrl)
+                                <img 
+                                    src="{{ $logoUrl }}" 
+                                    alt="{{ $client->name }}" 
+                                    style="height: 40px; width: auto; max-width: 120px;" 
+                                    class="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
+                                    loading="lazy"
+                                >
+                            @else
+                                <span class="text-base font-semibold text-[#4a4a4a] opacity-50 hover:opacity-100 transition-opacity">{{ $client->name }}</span>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
+    {{-- FOOTER (simple) --}}
+    <footer class="bg-white text-black px-4 md:px-8 pb-12">
+        <div class="w-full space-y-4" style="max-width: 760px; margin: 0 auto;">
+            @if($footerText)
+                <div class="text-sm text-gray-700 leading-relaxed">{{ $footerText }}</div>
             @endif
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-700">
+                <p>© {{ date('Y') }} {{ $settings->site_title ?? 'Laurensius Dimas' }}</p>
+                <div class="flex flex-wrap gap-4">
+                    @if($footerCtaLabel && $footerCtaUrl)
+                        <a href="{{ $footerCtaUrl }}" target="_blank" class="font-semibold text-[#363439] underline">
+                            {{ $footerCtaLabel }}
+                        </a>
+                    @endif
+                    @if($contactEmail)
+                        <a href="mailto:{{ $contactEmail }}" class="text-gray-600 hover:text-black">Email</a>
+                    @endif
+                    @if($socialLinks && count($socialLinks) > 0)
+                        @foreach($socialLinks as $link)
+                            <a
+                                href="{{ $link['url'] }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-gray-600 hover:text-black"
+                            >
+                                {{ $link['platform'] }}
+                            </a>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
         </div>
     </footer>
 </div>

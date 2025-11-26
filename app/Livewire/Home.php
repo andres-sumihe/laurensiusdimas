@@ -16,16 +16,27 @@ class Home extends Component
     public function render()
     {
         $settings = SiteSetting::current();
-        $projects = Project::where('is_visible', true)
+        
+        // Curated projects (main portfolio section)
+        $curatedProjects = Project::where('is_visible', true)
+            ->where('section', 'curated')
             ->orderBy('sort_order')
             ->get();
+        
+        // Older projects (archive section)
+        $olderProjects = Project::where('is_visible', true)
+            ->where('section', 'older')
+            ->orderBy('sort_order')
+            ->get();
+        
         $clients = Client::where('is_visible', true)
             ->orderBy('sort_order')
             ->get();
 
         return view('livewire.home', [
                 'settings' => $settings,
-                'projects' => $projects,
+                'curatedProjects' => $curatedProjects,
+                'olderProjects' => $olderProjects,
                 'clients' => $clients,
             ])
             ->layoutData([

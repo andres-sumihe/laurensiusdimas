@@ -23,12 +23,17 @@ class SiteSetting extends Model
         'corporate_subheading',
         'older_heading',
         'older_subheading',
+        'older_year_from',
+        'older_year_to',
         'profile_picture_url',
         'bio_short',
         'bio_long',
         'resume_url',
         'email',
         'social_links',
+        'footer_text',
+        'footer_cta_label',
+        'footer_cta_url',
     ];
 
     protected $casts = [

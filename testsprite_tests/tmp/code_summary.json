@@ -1,0 +1,13 @@
+{
+  "tech_stack": ["PHP 8.3", "Laravel 12.12.0", "FilamentPHP v3", "Livewire 3", "Alpine.js", "Tailwind CSS 4", "MySQL 5.7", "Vite"],
+  "features": [
+    {"name": "Home Page", "description": "Main public portfolio page with hero section, curated projects, older projects sections, and footer", "files": ["app/Livewire/Home.php", "resources/views/livewire/home.blade.php", "resources/views/livewire/partials/project-card.blade.php"]},
+    {"name": "Project Model", "description": "Portfolio project items with section (curated/older), layout type, media items", "files": ["app/Models/Project.php"]},
+    {"name": "Client Model", "description": "Corporate client logos with name, logo URL, website URL", "files": ["app/Models/Client.php"]},
+    {"name": "Site Settings", "description": "Singleton site configuration for hero, SEO, social links", "files": ["app/Models/SiteSetting.php"]},
+    {"name": "Admin Panel - Projects", "description": "Filament CRUD for portfolio projects", "files": ["app/Filament/Resources/ProjectResource.php"]},
+    {"name": "Admin Panel - Clients", "description": "Filament CRUD for client logos", "files": ["app/Filament/Resources/ClientResource.php"]},
+    {"name": "Admin Panel - Site Settings", "description": "Custom Filament page for site settings", "files": ["app/Filament/Pages/ManageSiteSettings.php"]},
+    {"name": "Project Card Layout", "description": "Reusable partial for project media grids", "files": ["resources/views/livewire/partials/project-card.blade.php"]}
+  ]
+}

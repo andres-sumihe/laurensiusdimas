@@ -179,6 +179,22 @@
                 </span>
                 <div style="height: 4px; flex: 1; background: #000;"></div>
             </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+                {{-- Profile Photo (Left) --}}
+                @if($profilePicUrl)
+                <div class="md:col-span-4 order-1 md:order-1">
+                    <div class="relative group">
+                        <div class="absolute inset-0 bg-gray-100 transform translate-x-2 translate-y-2 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"></div>
+                        <img 
+                            src="{{ $profilePicUrl }}" 
+                            alt="Profile" 
+                            class="relative w-full aspect-[3/4] object-cover grayscale group-hover:grayscale-0 transition-all duration-500 shadow-sm"
+                            loading="lazy"
+                        >
+                    </div>
+                </div>
+                @endif
 
             {{-- Projects Grid --}}
             <div style="display: flex; flex-direction: column; gap: 48px;">

@@ -50,11 +50,11 @@ class ManageSiteSettings extends Page
                                     ->helperText('Default meta description (160 chars max)'),
                                 
                                 Forms\Components\FileUpload::make('favicon_url')
-                                    ->label('Favicon')
+                                    ->label('Site Logo / Favicon')
                                     ->directory('settings')
-                                    ->image()
-                                    ->imageEditor()
-                                    ->helperText('Upload a square image (32x32 or 64x64)'),
+                                    ->acceptedFileTypes(['image/svg+xml', 'image/png', 'image/jpeg', 'image/x-icon'])
+                                    ->maxSize(2048) // 2MB
+                                    ->helperText('Upload SVG (recommended) or PNG/ICO. SVG will be saved as /logo.svg for reuse across the site.'),
                                 
                                 Forms\Components\FileUpload::make('og_image_url')
                                     ->label('Default Social Share Image')
@@ -253,6 +253,31 @@ class ManageSiteSettings extends Page
                         ->body('Hero file is too large. Maximum allowed size is 25MB.')
                         ->send();
                     return;
+                }
+            }
+        }
+
+        // Copy SVG favicon to public/logo.svg for easy reuse
+        if (!empty($data['favicon_url']) && !str_starts_with($data['favicon_url'], 'http')) {
+            $faviconPath = $data['favicon_url'];
+            if (Storage::disk('public')->exists($faviconPath)) {
+                $extension = pathinfo($faviconPath, PATHINFO_EXTENSION);
+                
+                // If it's an SVG, copy to public/logo.svg
+                if (strtolower($extension) === 'svg') {
+                    $faviconFullPath = Storage::disk('public')->path($faviconPath);
+                    $publicLogoPath = public_path('logo.svg');
+                    
+                    // Copy the file
+                    if (file_exists($faviconFullPath)) {
+                        copy($faviconFullPath, $publicLogoPath);
+                        
+                        Notification::make()
+                            ->success()
+                            ->title('Logo updated')
+                            ->body('SVG logo has been saved to /logo.svg for use across the site.')
+                            ->send();
+                    }
                 }
             }
         }

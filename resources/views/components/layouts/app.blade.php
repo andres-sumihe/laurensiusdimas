@@ -18,7 +18,7 @@
             ? (str_starts_with($siteSettings->favicon_url, 'http')
                 ? $siteSettings->favicon_url
                 : \Illuminate\Support\Facades\Storage::url($siteSettings->favicon_url))
-            : null;
+            : asset('favicon.ico');
     @endphp
 
     <title>{{ $metaTitle }}</title>
@@ -33,11 +33,48 @@
     @if($favicon)
         <link rel="icon" type="image/png" href="{{ $favicon }}">
     @endif
+    {{-- SVG favicon fallback using project logo (modern browsers) --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
+    {{-- Fallback to /favicon.ico for legacy browsers --}}
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
-    <!-- Fonts -->
+    <!-- Fonts: Montserrat (body) + Space Mono (monospace) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Variables for Fonts -->
+    <style>
+        :root {
+            --font-display: 'Horizon', 'Bebas Neue', 'Oswald', sans-serif;
+            --font-body: 'Montserrat', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+        
+        Horizon Font - If you have the font files, uncomment below */
+        @font-face {
+            font-family: 'Horizon';
+            src: url('/fonts/Horizon.woff2') format('woff2');
+            font-style: normal;
+            font-display: swap;
+        }
+    
+        
+        /* Fallback: Using system fonts that mimic Horizon's bold condensed style */
+        .font-display, .font-horizon {
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .font-body, .font-montserrat {
+            font-family: var(--font-body);
+        }
+        
+        .font-mono, .font-spacemono {
+            font-family: var(--font-mono);
+        }
+    </style>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles

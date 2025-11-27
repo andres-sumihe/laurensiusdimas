@@ -3,7 +3,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:host": "vite --host",
+        "dev:watch": "concurrently 'php artisan serve' 'vite --host'",
+        "make-favicon": "node scripts/make-favicon.js"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
@@ -11,6 +14,8 @@
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.2.0",
         "tailwindcss": "^4.0.0",
-        "vite": "^6.2.4"
+        "vite": "^6.2.4",
+        "vite-plugin-full-reload": "^1.2.0",
+        "png-to-ico": "^2.0.0"
     }
 }

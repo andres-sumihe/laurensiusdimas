@@ -22,12 +22,14 @@
     $heroTitle = strtoupper($settings->hero_headline ?? 'LAURENSIUS DIMAS');
     $heroSubtitle = $settings->hero_subheadline ?? 'VFX Enthusiast  |  3D Generalist  |  Sound Design';
 
-    // Profile / Contact
-    $profilePicUrl = $settings->profile_picture_url
-        ? (str_starts_with($settings->profile_picture_url, 'http')
-            ? $settings->profile_picture_url
-            : Storage::url($settings->profile_picture_url))
-        : null;
+    // Logo / Contact — prefer site logo, fallback to profile picture
+    $logoUrl = $settings->logo_url
+        ? (str_starts_with($settings->logo_url, 'http')
+            ? $settings->logo_url
+            : Storage::url($settings->logo_url))
+        : (str_starts_with($settings->profile_picture_url ?? '', 'http')
+            ? ($settings->profile_picture_url ?? null)
+            : ($settings->profile_picture_url ? Storage::url($settings->profile_picture_url) : asset('logo.svg')));
     $bioShort = $settings->bio_short ?? null;
     $bioLong = $settings->bio_long ?? null;
     $contactEmail = $settings->email ?? null;
@@ -71,11 +73,11 @@
             <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
         </div>
 
-        <div class="relative z-10 text-left space-y-4 px-6">
-            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl xl:text-[92px] tracking-[0.05em] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
+        <div class="relative z-10 text-left px-6">
+            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl xl:text-[96px] tracking-[0%] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
                 {{ $heroTitle }}
             </h1>
-            <p class="text-[11px] md:text-sm tracking-[0.45em] text-gray-200 font-medium">
+            <p class="font-mono text-[15px] xl:text-[28px] tracking-[13%] text-white">
                 {{ $heroSubtitle }}
             </p>
         </div>
@@ -84,46 +86,56 @@
     {{-- ========================================
          ABOUT SECTION - Enhanced Layout
     ========================================= --}}
-    @if($bioShort || $bioLong || $profilePicUrl)
-    <section class="bg-white text-black px-4 md:px-8 py-20">
-        <div class="w-full mx-auto" style="max-width: 760px;">
+    @if($bioShort || $bioLong || $logoUrl)
+    <section class="bg-black text-white px-4 md:px-8 py-20">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
             {{-- Section Header --}}
             <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px;">
-                <span style="font-family: var(--font-display, serif); font-size: clamp(24px, 4vw, 38px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
-                    About
+                <span class="font-display" style="font-size: 64px; text-transform: uppercase; color: white; white-space: nowrap;">
+                    VISUAL WORKER
                 </span>
-                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+                <div style="height: 4px; flex: 1; background: white;"></div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
-                {{-- Profile Photo (Left) --}}
-                @if($profilePicUrl)
-                <div class="md:col-span-4 order-1 md:order-1">
-                    <div class="relative group">
-                        <div class="absolute inset-0 bg-gray-100 transform translate-x-2 translate-y-2 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"></div>
-                        <img 
-                            src="{{ $profilePicUrl }}" 
-                            alt="Profile" 
-                            class="relative w-full aspect-[3/4] object-cover grayscale group-hover:grayscale-0 transition-all duration-500 shadow-sm"
-                            loading="lazy"
-                        >
+                @php
+                    $logoUrl = $settings->favicon_url
+                        ? (str_starts_with($settings->favicon_url, 'http')
+                            ? $settings->favicon_url
+                            : Storage::url($settings->favicon_url))
+                        : asset('logo.svg');
+                    $isSvg = pathinfo($logoUrl, PATHINFO_EXTENSION) === 'svg';
+                @endphp
+                @if($isSvg && file_exists(public_path('logo.svg')))
+                    <div class="flex col-span-4 my-auto md:w-auto justify-center items-center order-1 md:order-1">
+                        <span class="w-[120px] h-[120px]"> 
+                            {!! file_get_contents(public_path('logo.svg')) !!}
+                        </span>
                     </div>
-                </div>
+                @else
+                    {{-- Fallback to image or placeholder --}}
+                    <div class="flex col-span-4 my-auto md:w-auto justify-center items-center order-1 md:order-1">
+                        @if($logoUrl)
+                            <img src="{{ $logoUrl }}" alt="Logo" class="w-[120px] h-[120px] object-contain" />
+                        @else
+                            <span style="font-family: var(--font-display, serif); font-size: 14px; font-weight: 700; color: #000;">L</span>
+                        @endif
+                    </div>
                 @endif
 
                 {{-- Text Content (Right) --}}
-                <div class="{{ $profilePicUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-8 order-2 md:order-2">
+                <div class="{{ $logoUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-8 order-2 md:order-2">
                     
                     {{-- Bio --}}
-                    <div class="space-y-6 text-gray-600 leading-relaxed">
+                    <div class="space-y-6 text-gray-300 leading-relaxed">
                         @if($bioShort)
-                            <p class="text-lg font-medium text-gray-800">
+                            <p class="text-lg font-medium text-white">
                                 {{ $bioShort }}
                             </p>
                         @endif
                         
                         @if($bioLong)
-                            <div class="text-sm md:text-base text-gray-500">
+                            <div class="text-sm md:text-base text-gray-400">
                                 {!! $bioLong !!}
                             </div>
                         @endif
@@ -135,16 +147,15 @@
                             <a
                                 href="{{ str_starts_with($settings->resume_url, 'http') ? $settings->resume_url : Storage::url($settings->resume_url) }}"
                                 target="_blank"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#363439] text-white text-sm font-medium tracking-wide hover:bg-black transition-colors"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black text-sm font-extrabold tracking-wide hover:bg-gray-200 transition-colors"
                             >
                                 <span>RESUME</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             </a>
-                        @endif
-                        
-                        @if($contactEmail)
-                            <a href="mailto:{{ $contactEmail }}" class="group inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-black transition-colors">
-                                <span>{{ $contactEmail }}</span>
+
+                        @else 
+                            <a href="#start-a-project" class="group inline-flex items-center gap-2 text-sm font-semibold text-whitetransition-colors">
+                                <span>reach me out!</span>
                                 <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
                         @endif
@@ -160,13 +171,13 @@
     ========================================= --}}
     @if($curatedProjects->count() > 0)
     <section class="bg-white text-black px-4 md:px-8 py-16">
-        <div class="w-full mx-auto" style="max-width: 760px;">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
             {{-- Section Header --}}
             <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 48px;">
-                <span style="font-family: var(--font-display, serif); font-size: clamp(24px, 4vw, 38px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
+                <span class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap;">
                     {{ $portfolioHeading }}
                 </span>
-                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+                <div style="height: 4px; flex: 1; background: #000;"></div>
             </div>
 
             {{-- Projects Grid --}}
@@ -179,128 +190,362 @@
     </section>
     @endif
 
-    {{-- OLDER PROJECTS --}}
-    @if($olderProjects->count() > 0)
-    <section class="bg-white text-black px-4 md:px-8 py-14">
-        <div class="w-full mx-auto" style="max-width: 760px;">
-            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
-                <span style="font-family: var(--font-display, serif); font-size: clamp(22px, 4vw, 36px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
-                    {{ $olderHeading }}
-                </span>
-                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #9ca3af;">
-                    {{ $olderYearRange ?? '' }}
-                </span>
-                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
+        {{-- ========================================
+         CORPORATE PROJECTS SECTION (Two-Row Carousel)
+    ========================================= --}}
+    @if($corporateProjects->count() > 0)
+    <section class="bg-white text-black py-20 relative overflow-hidden">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
+            {{-- Section Header --}}
+            <div class="mb-2">
+                <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 8px;">
+                    <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap; margin: 0;">
+                        CORPORATE PROJECTS
+                    </h2>
+                    <div style="height: 4px; flex: 1; background: #000;"></div>
+                </div>
+                <p class="font-body font-bold" style="font-size: 24px; text-transform: uppercase; letter-spacing: 3.6px; color: #000; margin: 0;">
+                    ESCO LIFESCIENCES GROUP
+                </p>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 36px;">
-                @foreach($olderProjects as $project)
-                    @include('livewire.partials.project-card', ['project' => $project])
-                @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
 
-    {{-- CLIENTS / TRUSTED BY (Marquee with consistent header style) --}}
-    @if($clients->count() > 0)
-    <section class="bg-white text-black px-4 md:px-8 py-16">
-        <div class="w-full mx-auto" style="max-width: 760px;">
-            {{-- Section Header - Matching Curated/Older Projects style --}}
-            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 40px;">
-                <span style="font-family: var(--font-display, serif); font-size: clamp(22px, 4vw, 36px); text-transform: uppercase; letter-spacing: 0.08em; color: #4a4a4a; white-space: nowrap;">
-                    Trusted By
-                </span>
-                <div style="height: 3px; flex: 1; background: #4a4a4a;"></div>
-            </div>
-            
-            {{-- Marquee Container --}}
-            <div class="relative overflow-hidden py-4">
-                {{-- Fade edges --}}
-                <div class="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10"></div>
-                <div class="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10"></div>
-                
-                {{-- Scrolling Track --}}
-                <div class="flex items-center gap-16 whitespace-nowrap animate-marquee">
-                    @foreach($clients as $client)
-                        @php
-                            $logoUrl = $client->logo_url
-                                ? (str_starts_with($client->logo_url, 'http')
-                                    ? $client->logo_url
-                                    : Storage::url($client->logo_url))
-                                : null;
-                        @endphp
-                        <div class="flex-shrink-0 flex items-center justify-center px-2">
-                            @if($logoUrl)
-                                <img 
-                                    src="{{ $logoUrl }}" 
-                                    alt="{{ $client->name }}" 
-                                    style="height: 40px; width: auto; max-width: 120px;" 
-                                    class="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
-                                    loading="lazy"
-                                >
-                            @else
-                                <span class="text-base font-semibold text-[#4a4a4a] opacity-50 hover:opacity-100 transition-opacity">{{ $client->name }}</span>
-                            @endif
+            {{-- Two-Row Infinite Marquee System --}}
+            <div class="space-y-6 mt-12 relative">
+                <style>
+                    @keyframes marquee-landscape {
+                        0% { transform: translateX(0); }
+                        100% { transform: translateX(-50%); }
+                    }
+                    @keyframes marquee-portrait {
+                        0% { transform: translateX(0); }
+                        100% { transform: translateX(-50%); }
+                    }
+                    .marquee-landscape-track {
+                        display: flex;
+                        width: max-content;
+                        animation: marquee-landscape 30s linear infinite;
+                    }
+                    .marquee-landscape-track:hover {
+                        animation-play-state: paused;
+                    }
+                    .marquee-portrait-track {
+                        display: flex;
+                        width: max-content;
+                        animation: marquee-portrait 25s linear infinite;
+                    }
+                    .marquee-portrait-track:hover {
+                        animation-play-state: paused;
+                    }
+                </style>
+
+                {{-- Top Row: Landscape Images --}}
+                <div class="relative">
+                    {{-- Navigation Arrows - Always visible --}}
+                    <button class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+
+                    {{-- Fade overlay left --}}
+                    <div class="absolute -left-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to right, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    {{-- Fade overlay right --}}
+                    <div class="absolute -right-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to left, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    
+                    {{-- Scrollable Area - Landscape --}}
+                    <div class="overflow-hidden">
+                        <div class="marquee-landscape-track">
+                            @php 
+                                // Filter only landscape projects
+                                $landscapeList = $corporateProjects->filter(fn($p) => $p->layout === 'landscape');
+                            @endphp
+                            {{-- First set --}}
+                            <div class="flex gap-6 shrink-0">
+                                @foreach($landscapeList as $project)
+                                    @php
+                                        $firstMedia = collect($project->media_items ?? [])->first();
+                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
+                                    @endphp
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 420px; height: 215px;">
+                                        @if($mediaUrl)
+                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            {{-- Duplicate set for seamless loop --}}
+                            <div class="flex gap-6 shrink-0 ml-6">
+                                @foreach($landscapeList as $project)
+                                    @php
+                                        $firstMedia = collect($project->media_items ?? [])->first();
+                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
+                                    @endphp
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 420px; height: 215px;">
+                                        @if($mediaUrl)
+                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                    @endforeach
-                    {{-- Duplicate for seamless loop --}}
-                    @foreach($clients as $client)
-                        @php
-                            $logoUrl = $client->logo_url
-                                ? (str_starts_with($client->logo_url, 'http')
-                                    ? $client->logo_url
-                                    : Storage::url($client->logo_url))
-                                : null;
-                        @endphp
-                        <div class="flex-shrink-0 flex items-center justify-center px-2">
-                            @if($logoUrl)
-                                <img 
-                                    src="{{ $logoUrl }}" 
-                                    alt="{{ $client->name }}" 
-                                    style="height: 40px; width: auto; max-width: 120px;" 
-                                    class="object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
-                                    loading="lazy"
-                                >
-                            @else
-                                <span class="text-base font-semibold text-[#4a4a4a] opacity-50 hover:opacity-100 transition-opacity">{{ $client->name }}</span>
-                            @endif
+                    </div>
+                </div>
+
+                {{-- Bottom Row: Portrait Images --}}
+                <div class="relative">
+                    {{-- Navigation Arrows - Always visible --}}
+                    <button class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+
+                    {{-- Fade overlay left --}}
+                    <div class="absolute -left-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to right, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    {{-- Fade overlay right --}}
+                    <div class="absolute -right-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to left, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    
+                    {{-- Scrollable Area - Portrait --}}
+                    <div class="overflow-hidden">
+                        <div class="marquee-portrait-track">
+                            @php 
+                                // Filter only portrait projects
+                                $portraitList = $corporateProjects->filter(fn($p) => $p->layout === 'portrait');
+                            @endphp
+                            {{-- First set --}}
+                            <div class="flex gap-4 shrink-0">
+                                @foreach($portraitList as $project)
+                                    @php
+                                        $firstMedia = collect($project->media_items ?? [])->first();
+                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
+                                    @endphp
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 220px; height: 400px;">
+                                        @if($mediaUrl)
+                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            {{-- Duplicate set for seamless loop --}}
+                            <div class="flex gap-4 shrink-0 ml-4">
+                                @foreach($portraitList as $project)
+                                    @php
+                                        $firstMedia = collect($project->media_items ?? [])->first();
+                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
+                                    @endphp
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 220px; height: 400px;">
+                                        @if($mediaUrl)
+                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                    @endforeach
+                    </div>
                 </div>
             </div>
         </div>
     </section>
     @endif
 
-    {{-- FOOTER (simple) --}}
-    <footer class="bg-white text-black px-4 md:px-8 pb-12">
-        <div class="w-full space-y-4" style="max-width: 760px; margin: 0 auto;">
-            @if($footerText)
-                <div class="text-sm text-gray-700 leading-relaxed">{{ $footerText }}</div>
-            @endif
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-700">
-                <p>© {{ date('Y') }} {{ $settings->site_title ?? 'Laurensius Dimas' }}</p>
-                <div class="flex flex-wrap gap-4">
-                    @if($footerCtaLabel && $footerCtaUrl)
-                        <a href="{{ $footerCtaUrl }}" target="_blank" class="font-semibold text-[#363439] underline">
-                            {{ $footerCtaLabel }}
-                        </a>
-                    @endif
-                    @if($contactEmail)
-                        <a href="mailto:{{ $contactEmail }}" class="text-gray-600 hover:text-black">Email</a>
-                    @endif
-                    @if($socialLinks && count($socialLinks) > 0)
-                        @foreach($socialLinks as $link)
-                            <a
-                                href="{{ $link['url'] }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-gray-600 hover:text-black"
-                            >
-                                {{ $link['platform'] }}
-                            </a>
+    {{-- ========================================
+         OLDER PROJECTS (YouTube Embed Style)
+    ========================================= --}}
+    @if($olderProjects->count() > 0)
+    <section class="bg-white text-black py-20 mb-[-360px]">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
+            {{-- Section Header --}}
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 8px;">
+                <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap; margin: 0;">
+                    OLDER PROJECTS
+                </h2>
+                <span class="font-body font-bold" style="font-size: 24px; text-transform: uppercase; letter-spacing: 3.6px; color: #000;">
+                    {{ $olderYearRange }}
+                </span>
+                <div style="height: 4px; flex: 1; background: #000;"></div>
+            </div>
+
+            {{-- YouTube Embed Container --}}
+            <div class="relative bg-[#d9d9d9] mt-10" style="width: 100%; aspect-ratio: 856/418;">
+                @php
+                    $firstOlderProject = $olderProjects->first();
+                    $youtubeUrl = $firstOlderProject->youtube_url ?? null;
+                @endphp
+                @if($youtubeUrl)
+                    <iframe 
+                        class="absolute inset-0 w-full h-full" 
+                        src="{{ $youtubeUrl }}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen
+                    ></iframe>
+                @else
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <p class="font-body font-bold" style="font-size: 36px; letter-spacing: 10.8px; color: grey; text-transform: uppercase;">
+                            EMBED YOUTUBE URL
+                        </p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </section>
+    @endif
+
+    {{-- ========================================
+         CLIENTS SECTION (Black Background) - Endless Carousel
+    ========================================= --}}
+    @if($clients->count() > 0)
+    <section class="bg-black text-white py-24 pt-[380px]">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
+            {{-- Section Header --}}
+            <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 48px;">
+                <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #fff; white-space: nowrap; margin: 0;">
+                    CLIENTS
+                </h2>
+                <div style="height: 4px; flex: 1; background: #fff;"></div>
+            </div>
+            
+            {{-- Endless Carousel Slider --}}
+            <div class="relative overflow-hidden min-h-[120px] flex items-center">
+                {{-- Fade overlay left --}}
+                <div class="absolute left-0 top-0 bottom-0 z-10 pointer-events-none" style="width: 120px; background: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);"></div>
+                {{-- Fade overlay right --}}
+                <div class="absolute right-0 top-0 bottom-0 z-10 pointer-events-none" style="width: 120px; background: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);"></div>
+                
+                {{-- Carousel container with animation --}}
+                <style>
+                    @keyframes marquee-clients {
+                        0% { transform: translateX(0); }
+                        100% { transform: translateX(-50%); }
+                    }
+                    .marquee-clients-track {
+                        display: flex;
+                        width: max-content;
+                        animation: marquee-clients 15s linear infinite;
+                    }
+                    .marquee-clients-track:hover {
+                        animation-play-state: paused;
+                    }
+                </style>
+                
+                <div class="marquee-clients-track">
+                    @php
+                        $clientsList = $clients->filter(fn($c) => !empty($c->logo_url));
+                    @endphp
+                    {{-- First set --}}
+                    <div class="flex gap-12 shrink-0">
+                        @foreach($clientsList as $client)
+                            @php
+                                $clientLogoUrl = $client->logo_url 
+                                    ? (str_starts_with($client->logo_url, 'http') 
+                                        ? $client->logo_url 
+                                        : Storage::url($client->logo_url)) 
+                                    : null;
+                            @endphp
+                            @if($clientLogoUrl)
+                                <div class="shrink-0 flex items-center justify-center" style="min-width: 180px; height: 100px;">
+                                    <img 
+                                        src="{{ $clientLogoUrl }}" 
+                                        alt="{{ $client->name }}" 
+                                        class="h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                                        loading="lazy"
+                                    >
+                                </div>
+                            @endif
                         @endforeach
+                    </div>
+                    {{-- Duplicate set for seamless loop --}}
+                    <div class="flex gap-12 shrink-0 ml-12">
+                        @foreach($clientsList as $client)
+                            @php
+                                $clientLogoUrl = $client->logo_url 
+                                    ? (str_starts_with($client->logo_url, 'http') 
+                                        ? $client->logo_url 
+                                        : Storage::url($client->logo_url)) 
+                                    : null;
+                            @endphp
+                            @if($clientLogoUrl)
+                                <div class="shrink-0 flex items-center justify-center" style="min-width: 180px; height: 100px;">
+                                    <img 
+                                        src="{{ $clientLogoUrl }}" 
+                                        alt="{{ $client->name }}" 
+                                        class="h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                                        loading="lazy"
+                                    >
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Fallback message if no logos --}}
+            @if($clients->every(fn($c) => empty($c->logo_url)))
+                <div class="flex items-center justify-center min-h-[200px]">
+                    <p class="font-body font-bold" style="font-size: 36px; letter-spacing: 10.8px; color: grey; text-transform: uppercase;">
+                        CLIENTS LOGO
+                    </p>
+                </div>
+            @endif
+        </div>
+    </section>
+    @endif
+
+    {{-- ========================================
+         FOOTER
+    ========================================= --}}
+    <footer class="bg-black text-white pb-16">
+        <div class="w-full mx-auto" style="max-width: 1200px;">
+            
+            {{-- CTA Section --}}
+            <div class="flex flex-col w-full md:flex-row items-center mb-20">
+                <div class="flex items-center w-full gap-16">
+                    <h2 class="font-body font-bold whitespace-nowrap shrink-0" style="font-size: 32px; color: #fff; margin: 0;">
+                        Bring Your Vision to Life!
+                    </h2>
+
+                    <a id="start-a-project" href="mailto:{{ $contactEmail }}" class="flex-1 inline-flex items-center justify-center font-body font-bold px-8 py-3 border border-white bg-transparent text-white text-lg rounded-xl transition-all" onmouseover="this.style.background='#fff'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#fff';">
+                        Start a Project
+                    </a>
+                </div>
+            </div>
+
+            {{-- Bottom Footer --}}
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-sm border-t border-gray-800 pt-8">
+                {{-- Logo + Copyright --}}
+                <div class="flex items-center">
+                    @if($isSvg)
+                        {{-- Inline SVG logo --}}
+                        @php
+                            $svgContent = null;
+                            if (file_exists(public_path('logo.svg'))) {
+                                $svgContent = file_get_contents(public_path('logo.svg'));
+                                // remove any existing width/height attrs
+                                $svgContent = preg_replace('/\s*(width|height)="[^"]*"/i', '', $svgContent);
+                                // inject desired size + Tailwind classes
+                                $svgContent = preg_replace('/<svg([^>]*)>/i', '<svg$1 width="40" height="40" class="w-[4] h-4" aria-hidden="true">', $svgContent, 1);
+                            }
+                        @endphp
+
+                        @if($svgContent)
+                            {!! $svgContent !!}
+                        @endif
                     @endif
+                    <p style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; margin: 0;">
+                        © {{ date('Y') }} Laurensius Dimas - 3D Generalist & Motion Designer
+                    </p>
+                </div>
+                
+                {{-- Social Links --}}
+                <div class="flex items-center gap-8">
+                    @if($contactEmail)
+                        <a href="mailto:{{ $contactEmail }}" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Email</a>
+                    @endif
+                    <a href="https://instagram.com" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Instagram</a>
+                    <a href="https://behance.net" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Behance</a>
+                    <a href="https://linkedin.com" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">LinkedIn</a>
                 </div>
             </div>
         </div>

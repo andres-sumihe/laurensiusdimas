@@ -10,9 +10,13 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
-                display: ['Archivo Black', 'Space Grotesk', 'Manrope', 'Inter', 'system-ui', 'sans-serif'],
-                body: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
+                sans: ['Montserrat', 'Manrope', 'Inter', 'system-ui', 'sans-serif'],
+                display: ['Horizon', 'Bebas Neue', 'Oswald', 'sans-serif'],
+                body: ['Montserrat', 'sans-serif'],
+                mono: ['Space Mono', 'monospace'],
+                horizon: ['Horizon', 'sans-serif'],
+                montserrat: ['Montserrat', 'sans-serif'],
+                spacemono: ['Space Mono', 'monospace'],
             },
             animation: {
                 'fade-in': 'fadeIn 1s ease-out',

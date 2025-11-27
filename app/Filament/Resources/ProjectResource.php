@@ -65,7 +65,7 @@ class ProjectResource extends Resource
                             ])
                             ->default('three_two')
                             ->required()
-                            ->live()
+                            ->live(debounce: 100)
                             ->helperText('Choose layout first, then add media to each slot below.'),
                         
                         Forms\Components\RichEditor::make('description')

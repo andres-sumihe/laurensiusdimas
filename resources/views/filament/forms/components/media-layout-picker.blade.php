@@ -68,7 +68,22 @@
         class="space-y-4"
     >
         {{-- Visual Grid Layout using flexbox for reliability --}}
-        <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 16px; background: #111827; border-radius: 8px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 16px; background: #111827; border-radius: 8px; position: relative;">
+            {{-- Loading Overlay --}}
+            <div 
+                wire:loading.flex
+                wire:target="data.layout"
+                style="position: absolute; inset: 0; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; border-radius: 8px; z-index: 50;"
+            >
+                <div style="text-align: center;">
+                    <svg class="animate-spin" style="width: 40px; height: 40px; color: #F59E0B; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div style="margin-top: 12px; color: #F59E0B; font-size: 14px; font-weight: 500;">Updating layout...</div>
+                </div>
+            </div>
+            
             @foreach($slots as $index => $slot)
                 <div 
                     style="width: calc({{ ($slot['cols'] / 12) * 100 }}% - 3px); aspect-ratio: 16/9; cursor: pointer;"

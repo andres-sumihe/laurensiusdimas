@@ -47,6 +47,7 @@ class ProjectResource extends Resource
                             ->label('Section')
                             ->options([
                                 'curated' => 'Curated Projects',
+                                'corporate' => 'Corporate Projects',
                                 'older' => 'Older Projects',
                             ])
                             ->default('curated')
@@ -62,6 +63,8 @@ class ProjectResource extends Resource
                                 'three_three' => 'Three-Three (6-Up)',
                                 'four_one' => 'Four-One (5-Up)',
                                 'four_two' => 'Four-Two (6-Up)',
+                                'landscape' => 'Landscape (Corporate)',
+                                'portrait' => 'Portrait (Corporate)',
                             ])
                             ->default('three_two')
                             ->required()

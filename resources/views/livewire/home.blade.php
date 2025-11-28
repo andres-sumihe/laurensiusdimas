@@ -52,7 +52,7 @@
     <section class="relative flex min-h-screen items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-black"></div>
 
-        <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[90vw] sm:max-w-none">
             @php
                 $isImage = preg_match('/\.(gif|png|jpe?g|webp|svg)$/i', $heroBlobUrl);
             @endphp
@@ -60,11 +60,11 @@
                 <img
                     src="{{ $heroBlobUrl }}"
                     alt="Animated blob"
-                    class="max-h-[520px] w-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
                 >
             @else
                 <video
-                    class="max-h-[520px] w-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
                     autoplay muted loop playsinline
                 >
                     <source src="{{ $heroBlobUrl }}" type="video/mp4">
@@ -73,63 +73,53 @@
             <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
         </div>
 
-        <div class="relative z-10 text-left px-6">
-            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl xl:text-[96px] tracking-[0%] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
+        <div class="relative z-10 text-left px-4 sm:px-6 lg:px-8">
+            <h1 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[96px] tracking-[0%] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
                 {{ $heroTitle }}
             </h1>
-            <p class="font-mono text-[15px] xl:text-[28px] tracking-[13%] text-white">
+            <p class="font-mono text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-[28px] tracking-[0.05em] sm:tracking-[0.08em] lg:tracking-[0.13em] text-white mt-2 sm:mt-3">
                 {{ $heroSubtitle }}
             </p>
         </div>
     </section>
 
     {{-- ========================================
-         ABOUT SECTION - Enhanced Layout
+         ABOUT SECTION
     ========================================= --}}
     @if($bioShort || $bioLong || $logoUrl)
-    <section class="bg-black text-white px-4 md:px-8 py-20">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px;">
-                <span class="font-display" style="font-size: 64px; text-transform: uppercase; color: white; white-space: nowrap;">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <span class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[64px] uppercase text-white whitespace-nowrap">
                     VISUAL WORKER
                 </span>
-                <div style="height: 4px; flex: 1; background: white;"></div>
+                <div class="h-1 w-full sm:flex-1 bg-white"></div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
-                @php
-                    $logoUrl = $settings->favicon_url
-                        ? (str_starts_with($settings->favicon_url, 'http')
-                            ? $settings->favicon_url
-                            : Storage::url($settings->favicon_url))
-                        : asset('logo.svg');
-                    $isSvg = pathinfo($logoUrl, PATHINFO_EXTENSION) === 'svg';
-                @endphp
-                @if($isSvg && file_exists(public_path('logo.svg')))
-                    <div class="flex col-span-4 my-auto md:w-auto justify-center items-center order-1 md:order-1">
-                        <span class="w-[120px] h-[120px]"> 
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
+                <div class="hidden md:flex md:col-span-4 my-auto justify-center items-center order-1">
+                    @php
+                        $logoUrl = $settings->favicon_url
+                            ? (str_starts_with($settings->favicon_url, 'http')
+                                ? $settings->favicon_url
+                                : Storage::url($settings->favicon_url))
+                            : asset('logo.svg');
+                        $isSvg = pathinfo($logoUrl, PATHINFO_EXTENSION) === 'svg';
+                    @endphp
+                    @if($isSvg && file_exists(public_path('logo.svg')))
+                        <span class="w-20 h-20 sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px]"> 
                             {!! file_get_contents(public_path('logo.svg')) !!}
                         </span>
-                    </div>
-                @else
-                    {{-- Fallback to image or placeholder --}}
-                    <div class="flex col-span-4 my-auto md:w-auto justify-center items-center order-1 md:order-1">
-                        @if($logoUrl)
-                            <img src="{{ $logoUrl }}" alt="Logo" class="w-[120px] h-[120px] object-contain" />
-                        @else
-                            <span style="font-family: var(--font-display, serif); font-size: 14px; font-weight: 700; color: #000;">L</span>
-                        @endif
-                    </div>
-                @endif
+                    @endif
+                </div>
 
                 {{-- Text Content (Right) --}}
-                <div class="{{ $logoUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-8 order-2 md:order-2">
-                    
+                <div class="{{ $logoUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-6 sm:space-y-8 order-2">
                     {{-- Bio --}}
                     <div class="space-y-6 text-gray-300 leading-relaxed">
                         @if($bioShort)
-                            <p class="text-lg font-medium text-white">
+                            <p class="text-base md:text-lg font-bold text-white">
                                 {{ $bioShort }}
                             </p>
                         @endif
@@ -142,19 +132,19 @@
                     </div>
                     
                     {{-- Links --}}
-                    <div class="flex flex-wrap items-center gap-6 pt-2">
+                    <div class="flex flex-wrap items-center gap-4 sm:gap-6 pt-2">
                         @if($settings->resume_url)
                             <a
                                 href="{{ str_starts_with($settings->resume_url, 'http') ? $settings->resume_url : Storage::url($settings->resume_url) }}"
                                 target="_blank"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black text-sm font-extrabold tracking-wide hover:bg-gray-200 transition-colors"
+                                class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-white text-black text-sm font-extrabold tracking-wide hover:bg-gray-200 transition-colors"
                             >
                                 <span>RESUME</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             </a>
 
                         @else 
-                            <a href="#start-a-project" class="group inline-flex items-center gap-2 text-sm font-semibold text-whitetransition-colors">
+                            <a href="#start-a-project" class="group inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors">
                                 <span>reach me out!</span>
                                 <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
@@ -170,18 +160,18 @@
          CURATED PROJECTS SECTION
     ========================================= --}}
     @if($curatedProjects->count() > 0)
-    <section class="bg-white text-black px-4 md:px-8 py-16">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 48px;">
-                <span class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap;">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
+                <span class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
                     {{ $portfolioHeading }}
                 </span>
-                <div style="height: 4px; flex: 1; background: #000;"></div>
+                <div class="h-1 w-full sm:flex-1 bg-black"></div>
             </div>
 
             {{-- Projects Grid --}}
-            <div style="display: flex; flex-direction: column; gap: 48px;">
+            <div class="flex flex-col gap-8 sm:gap-10 md:gap-12">
                 @foreach($curatedProjects as $project)
                     @include('livewire.partials.project-card', ['project' => $project])
                 @endforeach
@@ -194,23 +184,23 @@
          CORPORATE PROJECTS SECTION (Two-Row Carousel)
     ========================================= --}}
     @if($corporateProjects->count() > 0)
-    <section class="bg-white text-black py-20 relative overflow-hidden">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 relative overflow-hidden">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="mb-2">
-                <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 8px;">
-                    <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap; margin: 0;">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-2">
+                    <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
                         CORPORATE PROJECTS
                     </h2>
-                    <div style="height: 4px; flex: 1; background: #000;"></div>
+                    <div class="h-1 w-full sm:flex-1 bg-black"></div>
                 </div>
-                <p class="font-body font-bold" style="font-size: 24px; text-transform: uppercase; letter-spacing: 3.6px; color: #000; margin: 0;">
+                <p class="font-body font-bold text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.15em] text-black">
                     ESCO LIFESCIENCES GROUP
                 </p>
             </div>
 
             {{-- Two-Row Infinite Marquee System --}}
-            <div class="space-y-6 mt-12 relative">
+            <div class="space-y-4 sm:space-y-6 mt-8 sm:mt-10 md:mt-12 relative">
                 <style>
                     @keyframes marquee-landscape {
                         0% { transform: translateX(0); }
@@ -240,18 +230,18 @@
 
                 {{-- Top Row: Landscape Images --}}
                 <div class="relative">
-                    {{-- Navigation Arrows - Always visible --}}
-                    <button class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    {{-- Navigation Arrows - Hidden on mobile, visible on larger screens --}}
+                    <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
-                    <button class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                    <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
 
                     {{-- Fade overlay left --}}
-                    <div class="absolute -left-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to right, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
                     {{-- Fade overlay right --}}
-                    <div class="absolute -right-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to left, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
                     
                     {{-- Scrollable Area - Landscape --}}
                     <div class="overflow-hidden">
@@ -261,13 +251,13 @@
                                 $landscapeList = $corporateProjects->filter(fn($p) => $p->layout === 'landscape');
                             @endphp
                             {{-- First set --}}
-                            <div class="flex gap-6 shrink-0">
+                            <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0">
                                 @foreach($landscapeList as $project)
                                     @php
                                         $firstMedia = collect($project->media_items ?? [])->first();
                                         $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
                                     @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 420px; height: 215px;">
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
                                         @if($mediaUrl)
                                             <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                         @endif
@@ -275,13 +265,13 @@
                                 @endforeach
                             </div>
                             {{-- Duplicate set for seamless loop --}}
-                            <div class="flex gap-6 shrink-0 ml-6">
+                            <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0 ml-3 sm:ml-4 md:ml-6">
                                 @foreach($landscapeList as $project)
                                     @php
                                         $firstMedia = collect($project->media_items ?? [])->first();
                                         $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
                                     @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 420px; height: 215px;">
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
                                         @if($mediaUrl)
                                             <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                         @endif
@@ -294,18 +284,18 @@
 
                 {{-- Bottom Row: Portrait Images --}}
                 <div class="relative">
-                    {{-- Navigation Arrows - Always visible --}}
-                    <button class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    {{-- Navigation Arrows - Hidden on mobile, visible on larger screens --}}
+                    <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
-                    <button class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                    <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
 
                     {{-- Fade overlay left --}}
-                    <div class="absolute -left-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to right, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
                     {{-- Fade overlay right --}}
-                    <div class="absolute -right-2.5 top-0 bottom-0 z-10 pointer-events-none" style="width: 100px; background: linear-gradient(to left, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%);"></div>
+                    <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
                     
                     {{-- Scrollable Area - Portrait --}}
                     <div class="overflow-hidden">
@@ -315,13 +305,13 @@
                                 $portraitList = $corporateProjects->filter(fn($p) => $p->layout === 'portrait');
                             @endphp
                             {{-- First set --}}
-                            <div class="flex gap-4 shrink-0">
+                            <div class="flex gap-3 sm:gap-4 shrink-0">
                                 @foreach($portraitList as $project)
                                     @php
                                         $firstMedia = collect($project->media_items ?? [])->first();
                                         $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
                                     @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 220px; height: 400px;">
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
                                         @if($mediaUrl)
                                             <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                         @endif
@@ -329,13 +319,13 @@
                                 @endforeach
                             </div>
                             {{-- Duplicate set for seamless loop --}}
-                            <div class="flex gap-4 shrink-0 ml-4">
+                            <div class="flex gap-3 sm:gap-4 shrink-0 ml-3 sm:ml-4">
                                 @foreach($portraitList as $project)
                                     @php
                                         $firstMedia = collect($project->media_items ?? [])->first();
                                         $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
                                     @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer" style="width: 220px; height: 400px;">
+                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
                                         @if($mediaUrl)
                                             <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                         @endif
@@ -354,21 +344,21 @@
          OLDER PROJECTS (YouTube Embed Style)
     ========================================= --}}
     @if($olderProjects->count() > 0)
-    <section class="bg-white text-black py-20 mb-[-360px]">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  mb-[-180px] sm:mb-[-260px] md:mb-[-360px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 8px;">
-                <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #000; white-space: nowrap; margin: 0;">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-2">
+                <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
                     OLDER PROJECTS
                 </h2>
-                <span class="font-body font-bold" style="font-size: 24px; text-transform: uppercase; letter-spacing: 3.6px; color: #000;">
+                <span class="font-body font-bold text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.15em] text-black">
                     {{ $olderYearRange }}
                 </span>
-                <div style="height: 4px; flex: 1; background: #000;"></div>
+                <div class="h-1 w-full sm:flex-1 bg-black"></div>
             </div>
 
             {{-- YouTube Embed Container --}}
-            <div class="relative bg-[#d9d9d9] mt-10" style="width: 100%; aspect-ratio: 856/418;">
+            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video sm:aspect-[856/418]">
                 @php
                     $firstOlderProject = $olderProjects->first();
                     $youtubeUrl = $firstOlderProject->youtube_url ?? null;
@@ -383,7 +373,7 @@
                     ></iframe>
                 @else
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <p class="font-body font-bold" style="font-size: 36px; letter-spacing: 10.8px; color: grey; text-transform: uppercase;">
+                        <p class="font-body font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-[0.2em] sm:tracking-[0.3em] text-gray-500 uppercase text-center px-4">
                             EMBED YOUTUBE URL
                         </p>
                     </div>
@@ -397,22 +387,22 @@
          CLIENTS SECTION (Black Background) - Endless Carousel
     ========================================= --}}
     @if($clients->count() > 0)
-    <section class="bg-black text-white py-24 pt-[380px]">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[200px] sm:pt-[280px] md:pt-[380px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 48px;">
-                <h2 class="font-display" style="font-size: 56px; text-transform: uppercase; color: #fff; white-space: nowrap; margin: 0;">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">
+                <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-white whitespace-nowrap">
                     CLIENTS
                 </h2>
-                <div style="height: 4px; flex: 1; background: #fff;"></div>
+                <div class="h-1 w-full sm:flex-1 bg-white"></div>
             </div>
             
             {{-- Endless Carousel Slider --}}
-            <div class="relative overflow-hidden min-h-[120px] flex items-center">
+            <div class="relative overflow-hidden min-h-20 sm:min-h-[100px] md:min-h-[120px] flex items-center">
                 {{-- Fade overlay left --}}
-                <div class="absolute left-0 top-0 bottom-0 z-10 pointer-events-none" style="width: 120px; background: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);"></div>
+                <div class="absolute left-0 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-[120px] bg-gradient-to-r from-black to-transparent"></div>
                 {{-- Fade overlay right --}}
-                <div class="absolute right-0 top-0 bottom-0 z-10 pointer-events-none" style="width: 120px; background: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);"></div>
+                <div class="absolute right-0 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-[120px] bg-gradient-to-l from-black to-transparent"></div>
                 
                 {{-- Carousel container with animation --}}
                 <style>
@@ -435,7 +425,7 @@
                         $clientsList = $clients->filter(fn($c) => !empty($c->logo_url));
                     @endphp
                     {{-- First set --}}
-                    <div class="flex gap-12 shrink-0">
+                    <div class="flex gap-6 sm:gap-8 md:gap-12 shrink-0">
                         @foreach($clientsList as $client)
                             @php
                                 $clientLogoUrl = $client->logo_url 
@@ -445,11 +435,11 @@
                                     : null;
                             @endphp
                             @if($clientLogoUrl)
-                                <div class="shrink-0 flex items-center justify-center" style="min-width: 180px; height: 100px;">
+                                <div class="shrink-0 flex items-center justify-center min-w-[120px] sm:min-w-[150px] md:min-w-[180px] h-[60px] sm:h-[80px] md:h-[100px]">
                                     <img 
                                         src="{{ $clientLogoUrl }}" 
                                         alt="{{ $client->name }}" 
-                                        class="h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                                        class="h-8 sm:h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
                                         loading="lazy"
                                     >
                                 </div>
@@ -457,7 +447,7 @@
                         @endforeach
                     </div>
                     {{-- Duplicate set for seamless loop --}}
-                    <div class="flex gap-12 shrink-0 ml-12">
+                    <div class="flex gap-6 sm:gap-8 md:gap-12 shrink-0 ml-6 sm:ml-8 md:ml-12">
                         @foreach($clientsList as $client)
                             @php
                                 $clientLogoUrl = $client->logo_url 
@@ -467,11 +457,11 @@
                                     : null;
                             @endphp
                             @if($clientLogoUrl)
-                                <div class="shrink-0 flex items-center justify-center" style="min-width: 180px; height: 100px;">
+                                <div class="shrink-0 flex items-center justify-center min-w-[120px] sm:min-w-[150px] md:min-w-[180px] h-[60px] sm:h-[80px] md:h-[100px]">
                                     <img 
                                         src="{{ $clientLogoUrl }}" 
                                         alt="{{ $client->name }}" 
-                                        class="h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                                        class="h-8 sm:h-12 md:h-16 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
                                         loading="lazy"
                                     >
                                 </div>
@@ -483,8 +473,8 @@
 
             {{-- Fallback message if no logos --}}
             @if($clients->every(fn($c) => empty($c->logo_url)))
-                <div class="flex items-center justify-center min-h-[200px]">
-                    <p class="font-body font-bold" style="font-size: 36px; letter-spacing: 10.8px; color: grey; text-transform: uppercase;">
+                <div class="flex items-center justify-center min-h-[150px] sm:min-h-[180px] md:min-h-[200px]">
+                    <p class="font-body font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-[0.2em] sm:tracking-[0.3em] text-gray-500 uppercase">
                         CLIENTS LOGO
                     </p>
                 </div>
@@ -496,56 +486,58 @@
     {{-- ========================================
          FOOTER
     ========================================= --}}
-    <footer class="bg-black text-white pb-16">
-        <div class="w-full mx-auto" style="max-width: 1200px;">
+    <footer class="bg-black text-white pb-10 sm:pb-12 md:pb-16 px-4 sm:px-6 md:px-8">
+        <div class="w-full mx-auto max-w-[1200px]">
             
             {{-- CTA Section --}}
-            <div class="flex flex-col w-full md:flex-row items-center mb-20">
-                <div class="flex items-center w-full gap-16">
-                    <h2 class="font-body font-bold whitespace-nowrap shrink-0" style="font-size: 32px; color: #fff; margin: 0;">
+            <div class="flex flex-col gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 sm:gap-6 lg:gap-16">
+                    <h2 class="font-body font-bold text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-white whitespace-nowrap">
                         Bring Your Vision to Life!
                     </h2>
 
-                    <a id="start-a-project" href="mailto:{{ $contactEmail }}" class="flex-1 inline-flex items-center justify-center font-body font-bold px-8 py-3 border border-white bg-transparent text-white text-lg rounded-xl transition-all" onmouseover="this.style.background='#fff'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='#fff';">
+                    <a id="start-a-project" href="mailto:{{ $contactEmail }}" class="w-full lg:flex-1 inline-flex items-center justify-center font-body font-bold px-6 sm:px-8 py-3 border border-white bg-transparent text-white text-base sm:text-lg rounded-xl transition-all hover:bg-white hover:text-black">
                         Start a Project
                     </a>
                 </div>
             </div>
 
             {{-- Bottom Footer --}}
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-sm border-t border-gray-800 pt-8">
+            <div class="flex flex-col sm:flex-row justify-between gap-6 text-sm border-t border-gray-800 pt-6 sm:pt-8">
                 {{-- Logo + Copyright --}}
-                <div class="flex items-center">
-                    @if($isSvg)
-                        {{-- Inline SVG logo --}}
-                        @php
-                            $svgContent = null;
-                            if (file_exists(public_path('logo.svg'))) {
-                                $svgContent = file_get_contents(public_path('logo.svg'));
-                                // remove any existing width/height attrs
-                                $svgContent = preg_replace('/\s*(width|height)="[^"]*"/i', '', $svgContent);
-                                // inject desired size + Tailwind classes
-                                $svgContent = preg_replace('/<svg([^>]*)>/i', '<svg$1 width="40" height="40" class="w-[4] h-4" aria-hidden="true">', $svgContent, 1);
-                            }
-                        @endphp
-
-                        @if($svgContent)
-                            {!! $svgContent !!}
+                <div class="flex sm:flex-row items-center gap-6 text-center sm:text-left">
+                    <div class="hidden md:block">
+                        @if($isSvg)
+                            {{-- Inline SVG logo --}}
+                            @php
+                                $svgContent = null;
+                                if (file_exists(public_path('logo.svg'))) {
+                                    $svgContent = file_get_contents(public_path('logo.svg'));
+                                    // remove any existing width/height attrs
+                                    $svgContent = preg_replace('/\s*(width|height)="[^"]*"/i', '', $svgContent);
+                                    // inject desired size + Tailwind classes
+                                    $svgContent = preg_replace('/<svg([^>]*)>/i', '<svg$1 class="w-8 h-8" aria-hidden="true">', $svgContent, 1);
+                                }
+                            @endphp
+    
+                            @if($svgContent)
+                                {!! $svgContent !!}
+                            @endif
                         @endif
-                    @endif
-                    <p style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; margin: 0;">
-                        © {{ date('Y') }} Laurensius Dimas - 3D Generalist & Motion Designer
+                    </div>
+                    <p class="text-sm sm:text-base text-gray-400 text-left">
+                        © {{ date('Y') }} {{ $heroTitle }} - {{ $heroSubtitle }}
                     </p>
                 </div>
                 
                 {{-- Social Links --}}
-                <div class="flex items-center gap-8">
+                <div class="flex flex-wrap items-center justify-start gap-4 sm:gap-6 md:gap-8">
                     @if($contactEmail)
-                        <a href="mailto:{{ $contactEmail }}" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Email</a>
+                        <a href="mailto:{{ $contactEmail }}" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Email</a>
                     @endif
-                    <a href="https://instagram.com" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Instagram</a>
-                    <a href="https://behance.net" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">Behance</a>
-                    <a href="https://linkedin.com" target="_blank" style="font-family: var(--font-body, sans-serif); font-size: 16px; color: #999; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#999'">LinkedIn</a>
+                    <a href="https://instagram.com" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Instagram</a>
+                    <a href="https://behance.net" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Behance</a>
+                    <a href="https://linkedin.com" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">LinkedIn</a>
                 </div>
             </div>
         </div>

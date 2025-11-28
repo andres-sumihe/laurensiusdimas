@@ -74,10 +74,11 @@
         </div>
 
         <div class="relative z-10 text-left px-4 sm:px-6 lg:px-8">
-            <h1 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-[96px] tracking-[0%] drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)] uppercase">
+            {{-- Hero title uses fluid typography: clamp(min, preferred, max) --}}
+            <h1 class="font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 4.5rem);">
                 {{ $heroTitle }}
             </h1>
-            <p class="font-mono text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-[28px] tracking-[0.05em] sm:tracking-[0.08em] lg:tracking-[0.13em] text-white mt-2 sm:mt-3">
+            <p class="font-mono text-sm sm:text-base md:text-lg lg:text-xl tracking-[0.08em] sm:tracking-[0.1em] text-white mt-2 sm:mt-3">
                 {{ $heroSubtitle }}
             </p>
         </div>
@@ -88,10 +89,10 @@
     ========================================= --}}
     @if($bioShort || $bioLong || $logoUrl)
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <span class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[64px] uppercase text-white whitespace-nowrap">
+                <span class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-white whitespace-nowrap">
                     VISUAL WORKER
                 </span>
                 <div class="h-1 w-full sm:flex-1 bg-white"></div>
@@ -161,10 +162,10 @@
     ========================================= --}}
     @if($curatedProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
-                <span class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
+                <span class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
                     {{ $portfolioHeading }}
                 </span>
                 <div class="h-1 w-full sm:flex-1 bg-black"></div>
@@ -185,16 +186,16 @@
     ========================================= --}}
     @if($corporateProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 relative overflow-hidden">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             {{-- Section Header --}}
             <div class="mb-2">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-2">
-                    <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
+                    <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
                         CORPORATE PROJECTS
                     </h2>
                     <div class="h-1 w-full sm:flex-1 bg-black"></div>
                 </div>
-                <p class="font-body font-bold text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.15em] text-black">
+                <p class="font-body font-bold text-sm sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-black">
                     ESCO LIFESCIENCES GROUP
                 </p>
             </div>
@@ -345,13 +346,13 @@
     ========================================= --}}
     @if($olderProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  mb-[-180px] sm:mb-[-260px] md:mb-[-360px]">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-2">
-                <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-black whitespace-nowrap">
+                <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
                     OLDER PROJECTS
                 </h2>
-                <span class="font-body font-bold text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.15em] text-black">
+                <span class="font-body font-bold text-base sm:text-lg md:text-xl uppercase tracking-widest text-black">
                     {{ $olderYearRange }}
                 </span>
                 <div class="h-1 w-full sm:flex-1 bg-black"></div>
@@ -388,10 +389,10 @@
     ========================================= --}}
     @if($clients->count() > 0)
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[200px] sm:pt-[280px] md:pt-[380px]">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">
-                <h2 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[56px] uppercase text-white whitespace-nowrap">
+                <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-white whitespace-nowrap">
                     CLIENTS
                 </h2>
                 <div class="h-1 w-full sm:flex-1 bg-white"></div>
@@ -487,12 +488,12 @@
          FOOTER
     ========================================= --}}
     <footer class="bg-black text-white pb-10 sm:pb-12 md:pb-16 px-4 sm:px-6 md:px-8">
-        <div class="w-full mx-auto max-w-[1200px]">
+        <div class="w-full mx-auto max-w-[1100px]">
             
             {{-- CTA Section --}}
             <div class="flex flex-col gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 sm:gap-6 lg:gap-16">
-                    <h2 class="font-body font-bold text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-white whitespace-nowrap">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 sm:gap-6 lg:gap-12">
+                    <h2 class="font-body font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl text-white">
                         Bring Your Vision to Life!
                     </h2>
 

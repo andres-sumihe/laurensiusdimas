@@ -177,11 +177,11 @@
 
     {{-- Project Title & Subtitle --}}
     <div class="space-y-0.5 sm:space-y-1">
-        <h3 class="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl uppercase text-[#363439]">
+        <h3 class="font-display text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase text-[#363439]">
             {{ strtoupper($project->title) }}
         </h3>
         @if($project->subtitle)
-            <p class="text-xs sm:text-sm md:text-base uppercase tracking-[0.15em] sm:tracking-[0.28em] text-gray-600">
+            <p class="text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-wider text-gray-600">
                 {{ $project->subtitle }}
             </p>
         @endif

@@ -53,7 +53,7 @@
         <div class="absolute inset-0 bg-black"></div>
 
         {{-- Header Logo - Top Left (visible on all devices, smaller on mobile) --}}
-        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] lg:left-[8%] z-20">
+        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20">
             <a href="#" class="block">
                 <img 
                     src="{{ asset('logo.svg') }}" 
@@ -112,11 +112,7 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
                 <div class="hidden md:flex md:col-span-4 my-auto justify-center items-center order-1">
                     @php
-                        $aboutLogoUrl = $settings->favicon_url
-                            ? (str_starts_with($settings->favicon_url, 'http')
-                                ? $settings->favicon_url
-                                : Storage::url($settings->favicon_url))
-                            : asset('logo.svg');
+                        $aboutLogoUrl = asset('logo.svg');
                     @endphp
                     <img 
                         src="{{ $aboutLogoUrl }}" 

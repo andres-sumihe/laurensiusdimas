@@ -84,12 +84,12 @@
             <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
         </div>
 
-        <div class="relative z-10 text-left px-4 sm:px-6 lg:px-8">
+        <div class="relative z-10 text-left mx-4">
             {{-- Hero title uses fluid typography: clamp(min, preferred, max) --}}
-            <h1 class="font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 4.5rem);">
+            <h1 class="font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 48px);">
                 {{ $heroTitle }}
             </h1>
-            <p class="font-mono text-sm sm:text-base md:text-lg lg:text-xl tracking-[0.08em] sm:tracking-[0.1em] text-white mt-2 sm:mt-3">
+            <p class="font-mono text-[12px] sm:text-base md:text-lg lg:text-[18px] tracking-[0.08em] sm:tracking-widest text-white mt-2 sm:mt-3">
                 {{ $heroSubtitle }}
             </p>
         </div>
@@ -100,10 +100,10 @@
     ========================================= --}}
     @if($bioShort || $bioLong || $logoUrl)
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <span class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-white whitespace-nowrap">
+                <span class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-white whitespace-nowrap">
                     VISUAL WORKER
                 </span>
                 <div class="h-1 w-full sm:flex-1 bg-white"></div>
@@ -126,13 +126,13 @@
                     {{-- Bio --}}
                     <div class="space-y-6 text-gray-300 leading-relaxed">
                         @if($bioShort)
-                            <p class="text-base md:text-lg font-bold text-white">
+                            <p class="text-[12px] md:text-lg font-bold text-white">
                                 {{ $bioShort }}
                             </p>
                         @endif
                         
                         @if($bioLong)
-                            <div class="text-sm md:text-base text-gray-400">
+                            <div class="text-[12px] md:text-base text-gray-400">
                                 {!! $bioLong !!}
                             </div>
                         @endif
@@ -144,14 +144,14 @@
                             <a
                                 href="{{ str_starts_with($settings->resume_url, 'http') ? $settings->resume_url : Storage::url($settings->resume_url) }}"
                                 target="_blank"
-                                class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-white text-black text-sm font-extrabold tracking-wide hover:bg-gray-200 transition-colors"
+                                class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-white text-black text-[12px] font-extrabold tracking-wide hover:bg-gray-200 transition-colors"
                             >
                                 <span>RESUME</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             </a>
 
                         @else 
-                            <a href="#start-a-project" class="group inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors">
+                            <a href="#start-a-project" class="group inline-flex items-center gap-2 text-[12px] font-semibold text-white transition-colors">
                                 <span>reach me out!</span>
                                 <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
@@ -168,10 +168,10 @@
     ========================================= --}}
     @if($curatedProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
-                <span class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
+                <span class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                     {{ $portfolioHeading }}
                 </span>
                 <div class="h-1 w-full sm:flex-1 bg-black"></div>
@@ -192,16 +192,16 @@
     ========================================= --}}
     @if($corporateProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 relative overflow-hidden">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="mb-2">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-2">
-                    <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
+                    <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                         CORPORATE PROJECTS
                     </h2>
                     <div class="h-1 w-full sm:flex-1 bg-black"></div>
                 </div>
-                <p class="font-body font-bold text-sm sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-black">
+                <p class="font-body font-bold text-[12px] sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-black">
                     ESCO LIFESCIENCES GROUP
                 </p>
             </div>
@@ -352,10 +352,10 @@
     ========================================= --}}
     @if($olderProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  mb-[-180px] sm:mb-[-260px] md:mb-[-360px]">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-2">
-                <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-black whitespace-nowrap">
+                <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                     OLDER PROJECTS
                 </h2>
                 <span class="font-body font-bold text-base sm:text-lg md:text-xl uppercase tracking-widest text-black">
@@ -365,7 +365,7 @@
             </div>
 
             {{-- YouTube Embed Container --}}
-            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video sm:aspect-[856/418]">
+            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video">
                 @php
                     $firstOlderProject = $olderProjects->first();
                     $youtubeUrl = $firstOlderProject->youtube_url ?? null;
@@ -395,10 +395,10 @@
     ========================================= --}}
     @if($clients->count() > 0)
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[200px] sm:pt-[280px] md:pt-[380px]">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">
-                <h2 class="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl uppercase text-white whitespace-nowrap">
+                <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-white whitespace-nowrap">
                     CLIENTS
                 </h2>
                 <div class="h-1 w-full sm:flex-1 bg-white"></div>
@@ -494,12 +494,12 @@
          FOOTER
     ========================================= --}}
     <footer class="bg-black text-white pb-10 sm:pb-12 md:pb-16 px-4 sm:px-6 md:px-8">
-        <div class="w-full mx-auto max-w-[1100px]">
+        <div class="w-full mx-auto max-w-[1200px]">
             
             {{-- CTA Section --}}
             <div class="flex flex-col gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
                 <div class="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 sm:gap-6 lg:gap-12">
-                    <h2 class="font-body font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl text-white">
+                    <h2 class="font-body font-bold text-md sm:text-xl md:text-2xl lg:text-3xl text-white">
                         Bring Your Vision to Life!
                     </h2>
 
@@ -520,7 +520,7 @@
                             class="w-8 h-8 object-contain"
                         >
                     </div>
-                    <p class="text-sm sm:text-base text-gray-400 text-left">
+                    <p class="text-[12px] sm:text-base text-gray-400 text-left">
                         © {{ date('Y') }} {{ $heroTitle }} - {{ $heroSubtitle }}
                     </p>
                 </div>
@@ -528,11 +528,11 @@
                 {{-- Social Links --}}
                 <div class="flex flex-wrap items-center justify-start gap-4 sm:gap-6 md:gap-8">
                     @if($contactEmail)
-                        <a href="mailto:{{ $contactEmail }}" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Email</a>
+                        <a href="mailto:{{ $contactEmail }}" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Email</a>
                     @endif
-                    <a href="https://instagram.com" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Instagram</a>
-                    <a href="https://behance.net" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">Behance</a>
-                    <a href="https://linkedin.com" target="_blank" class="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">LinkedIn</a>
+                    <a href="https://instagram.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Instagram</a>
+                    <a href="https://behance.net" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Behance</a>
+                    <a href="https://linkedin.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">LinkedIn</a>
                 </div>
             </div>
         </div>

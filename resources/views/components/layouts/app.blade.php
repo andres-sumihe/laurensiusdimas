@@ -51,16 +51,16 @@
             --font-mono: 'Space Mono', monospace;
         }
         
-        Horizon Font - If you have the font files, uncomment below */
+        /* Horizon Font */
         @font-face {
             font-family: 'Horizon';
             src: url('/fonts/Horizon.woff2') format('woff2');
+            font-weight: 700;
             font-style: normal;
             font-display: swap;
         }
-    
         
-        /* Fallback: Using system fonts that mimic Horizon's bold condensed style */
+        /* Font utility classes */
         .font-display, .font-horizon {
             font-family: var(--font-display);
             font-weight: 700;

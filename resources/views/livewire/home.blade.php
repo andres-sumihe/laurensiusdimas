@@ -45,12 +45,23 @@
         ->get();
 @endphp
 
-<div class="min-h-screen bg-black text-white">
+<div class="min-h-screen max-w-[1440px] mx-auto bg-black text-white">
     {{-- ========================================
          HERO SECTION - Animated Blob Background
     ========================================= --}}
     <section class="relative flex min-h-screen items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-black"></div>
+
+        {{-- Header Logo - Top Left (visible on all devices, smaller on mobile) --}}
+        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] lg:left-[8%] z-20">
+            <a href="#" class="block">
+                <img 
+                    src="{{ asset('logo.svg') }}" 
+                    alt="LD Logo" 
+                    class="w-8 h-auto sm:w-10 md:w-12 lg:w-[54px] drop-shadow-lg"
+                >
+            </a>
+        </div>
 
         <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[90vw] sm:max-w-none">
             @php
@@ -101,18 +112,17 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
                 <div class="hidden md:flex md:col-span-4 my-auto justify-center items-center order-1">
                     @php
-                        $logoUrl = $settings->favicon_url
+                        $aboutLogoUrl = $settings->favicon_url
                             ? (str_starts_with($settings->favicon_url, 'http')
                                 ? $settings->favicon_url
                                 : Storage::url($settings->favicon_url))
                             : asset('logo.svg');
-                        $isSvg = pathinfo($logoUrl, PATHINFO_EXTENSION) === 'svg';
                     @endphp
-                    @if($isSvg && file_exists(public_path('logo.svg')))
-                        <span class="w-20 h-20 sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px]"> 
-                            {!! file_get_contents(public_path('logo.svg')) !!}
-                        </span>
-                    @endif
+                    <img 
+                        src="{{ $aboutLogoUrl }}" 
+                        alt="Logo" 
+                        class="w-20 h-20 sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px] object-contain"
+                    >
                 </div>
 
                 {{-- Text Content (Right) --}}
@@ -508,23 +518,11 @@
                 {{-- Logo + Copyright --}}
                 <div class="flex sm:flex-row items-center gap-6 text-center sm:text-left">
                     <div class="hidden md:block">
-                        @if($isSvg)
-                            {{-- Inline SVG logo --}}
-                            @php
-                                $svgContent = null;
-                                if (file_exists(public_path('logo.svg'))) {
-                                    $svgContent = file_get_contents(public_path('logo.svg'));
-                                    // remove any existing width/height attrs
-                                    $svgContent = preg_replace('/\s*(width|height)="[^"]*"/i', '', $svgContent);
-                                    // inject desired size + Tailwind classes
-                                    $svgContent = preg_replace('/<svg([^>]*)>/i', '<svg$1 class="w-8 h-8" aria-hidden="true">', $svgContent, 1);
-                                }
-                            @endphp
-    
-                            @if($svgContent)
-                                {!! $svgContent !!}
-                            @endif
-                        @endif
+                        <img 
+                            src="{{ asset('logo.svg') }}" 
+                            alt="Logo" 
+                            class="w-8 h-8 object-contain"
+                        >
                     </div>
                     <p class="text-sm sm:text-base text-gray-400 text-left">
                         © {{ date('Y') }} {{ $heroTitle }} - {{ $heroSubtitle }}

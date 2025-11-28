@@ -167,7 +167,7 @@
          CURATED PROJECTS SECTION
     ========================================= --}}
     @if($curatedProjects->count() > 0)
-    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 rounded-t-4xl">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
@@ -351,8 +351,8 @@
          OLDER PROJECTS (YouTube Embed Style)
     ========================================= --}}
     @if($olderProjects->count() > 0)
-    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  mb-[-180px] sm:mb-[-260px] md:mb-[-360px]">
-        <div class="w-full mx-auto max-w-[1200px]">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  rounded-b-4xl">
+        <div class="w-full mx-auto max-w-[1200px] mb-[-180px] sm:mb-[-360px]">
             {{-- Section Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-2">
                 <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
@@ -365,7 +365,7 @@
             </div>
 
             {{-- YouTube Embed Container --}}
-            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video">
+            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video rounded-xl">
                 @php
                     $firstOlderProject = $olderProjects->first();
                     $youtubeUrl = $firstOlderProject->youtube_url ?? null;

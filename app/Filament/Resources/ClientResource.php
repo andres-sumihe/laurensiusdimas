@@ -33,7 +33,9 @@ class ClientResource extends Resource
                         
                         Forms\Components\FileUpload::make('logo_url')
                             ->label('Logo')
+                            ->disk('public')
                             ->directory('clients/logos')
+                            ->visibility('public')
                             ->image()
                             ->imageEditor()
                             ->required()
@@ -75,6 +77,7 @@ class ClientResource extends Resource
                 
                 Tables\Columns\ImageColumn::make('logo_url')
                     ->label('Logo')
+                    ->disk('public')
                     ->circular()
                     ->size(40),
                 

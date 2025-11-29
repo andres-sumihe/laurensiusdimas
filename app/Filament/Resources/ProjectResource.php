@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Forms\Components\MediaLayoutPicker;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Models\Project;
@@ -38,10 +37,22 @@ class ProjectResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->helperText('Auto-generated from title, but editable'),
                         
-                        Forms\Components\TextInput::make('subtitle')
+                        Forms\Components\Select::make('work_type')
+                            ->label('Work Type')
+                            ->options([
+                                'freelance' => 'Freelance',
+                                'full-time' => 'Full-time',
+                                'contract' => 'Contract',
+                                'personal' => 'Personal Project',
+                                'collaboration' => 'Collaboration',
+                            ])
+                            ->placeholder('Select work type')
+                            ->native(false),
+                        
+                        Forms\Components\TextInput::make('work_description')
+                            ->label('Work Description')
                             ->maxLength(255)
-                            ->label('Category / Subtitle')
-                            ->placeholder('e.g., Motion Design'),
+                            ->placeholder('e.g., Motion Design, 3D Animation'),
 
                         Forms\Components\Select::make('section')
                             ->label('Section')
@@ -52,7 +63,18 @@ class ProjectResource extends Resource
                             ])
                             ->default('curated')
                             ->required()
-                            ->helperText('Which section this project appears in.'),
+                            ->reactive() // Makes other fields respond to changes
+                            ->helperText('Corporate projects require a client connection.'),
+
+                        // Client field - ONLY visible for corporate projects
+                        Forms\Components\Select::make('client_id')
+                            ->label('Client')
+                            ->relationship('client', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(fn (callable $get) => $get('section') === 'corporate')
+                            ->visible(fn (callable $get) => $get('section') === 'corporate')
+                            ->helperText('Select the corporate client for this project.'),
 
                         Forms\Components\Select::make('layout')
                             ->label('Layout')
@@ -63,11 +85,12 @@ class ProjectResource extends Resource
                                 'three_three' => 'Three-Three (6-Up)',
                                 'four_one' => 'Four-One (5-Up)',
                                 'four_two' => 'Four-Two (6-Up)',
-                                'landscape' => 'Landscape (Corporate)',
-                                'portrait' => 'Portrait (Corporate)',
+                                // Removed: 'landscape' => 'Landscape (Corporate)'
+                                // Removed: 'portrait' => 'Portrait (Corporate)'
                             ])
                             ->default('three_two')
-                            ->required()
+                            ->required(fn (callable $get) => $get('section') !== 'corporate')
+                            ->hidden(fn (callable $get) => $get('section') === 'corporate')
                             ->live(debounce: 100)
                             ->helperText('Choose layout first, then add media to each slot below.'),
                         
@@ -83,13 +106,15 @@ class ProjectResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Media Gallery')
-                    ->description('Click on each slot to add/edit media. The grid reflects the selected layout.')
+                Forms\Components\Section::make('Project Media')
+                    ->description(fn (callable $get) => $get('section') === 'corporate' 
+                        ? 'Add images/videos for this corporate project. Each media can be landscape or portrait.'
+                        : 'Add images/videos for this project. Use slot numbers to control grid placement.')
                     ->schema([
-                        MediaLayoutPicker::make('media_items')
-                            ->label('')
+                        Forms\Components\View::make('filament.forms.components.corporate-media-table')
                             ->columnSpanFull(),
-                    ]),
+                    ])
+                    ->collapsible(),
 
                 Forms\Components\Section::make('SEO Settings')
                     ->schema([
@@ -130,33 +155,36 @@ class ProjectResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('sort_order')
+                Tables\Columns\TextColumn::make('id')
                     ->label('#')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->sortable()
-                    ->limit(30),
-                
-                Tables\Columns\TextColumn::make('subtitle')
-                    ->searchable()
-                    ->label('Category')
-                    ->badge()
-                    ->color('gray'),
+                    ->wrap(),
                 
                 Tables\Columns\TextColumn::make('section')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'curated' => 'success',
-                        'older' => 'warning',
+                        'corporate' => 'info',
+                        'older' => 'gray',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'curated' => 'Curated',
-                        'older' => 'Older',
-                        default => ucfirst($state),
-                    }),
+                    ->sortable(),
+                
+                Tables\Columns\TextColumn::make('client.name')
+                    ->label('Client')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->default('—'),
+                
+                Tables\Columns\TextColumn::make('layout')
+                    ->badge()
+                    ->sortable()
+                    ->toggleable(),
                 
                 Tables\Columns\IconColumn::make('is_visible')
                     ->label('Status')
@@ -201,7 +229,7 @@ class ProjectResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // Corporate media is now embedded inline via Livewire component
         ];
     }
 

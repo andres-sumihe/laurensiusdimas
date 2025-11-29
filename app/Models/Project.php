@@ -13,52 +13,50 @@ class Project extends Model
         'slug',
         'title',
         'subtitle',
+        'work_type',
+        'work_description',
         'description',
         'layout',
         'section',
-        'media_items',
         'is_visible',
         'sort_order',
         'meta_title',
         'meta_description',
         'og_image',
+        'client_id',
     ];
 
     protected $casts = [
-        'media_items' => 'array',
         'is_visible' => 'boolean',
     ];
-    protected static function booted(): void
+
+    public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        static::saving(function (Project $project) {
-            // Auto-detect layout for Corporate projects if not manually set (or even if set, to ensure correctness if desired)
-            // Here we'll only do it if it's 'corporate'
-            if ($project->section === 'corporate') {
-                $media = $project->media_items[0] ?? null;
-                
-                if ($media && isset($media['url'])) {
-                    // If we have explicit width/height in metadata (future proofing)
-                    if (isset($media['width']) && isset($media['height'])) {
-                        $ratio = $media['width'] / $media['height'];
-                        $project->layout = $ratio >= 1 ? 'landscape' : 'portrait';
-                    } 
-                    // Otherwise try to detect from file if local
-                    elseif (!str_starts_with($media['url'], 'http')) {
-                        try {
-                            $path = \Illuminate\Support\Facades\Storage::disk('public')->path($media['url']);
-                            if (file_exists($path)) {
-                                [$width, $height] = getimagesize($path);
-                                $ratio = $width / $height;
-                                $project->layout = $ratio >= 1 ? 'landscape' : 'portrait';
-                            }
-                        } catch (\Exception $e) {
-                            // Fallback or log error
-                        }
-                    }
-                    // If remote URL (dummy data), we can't easily detect without fetching.
-                    // But for dummy data we set it explicitly in the seeder/script.
-                }
-            }
-        });
+        return $this->belongsTo(Client::class);
     }
+
+    /**
+     * Get all media for this project (unified relationship)
+     */
+    public function projectMedia(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Alias for corporate projects - gets media with layout (landscape/portrait)
+     */
+    public function corporateMedia(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->whereNotNull('layout')->orderBy('sort_order');
+    }
+
+    /**
+     * Gets media for grid-based layouts (curated/older) - sorted by slot_index
+     */
+    public function gridMedia(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->whereNotNull('slot_index')->orderBy('slot_index');
+    }
+
 }

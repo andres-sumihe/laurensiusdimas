@@ -20,4 +20,9 @@ class Client extends Model
     protected $casts = [
         'is_visible' => 'boolean',
     ];
+
+    public function projects(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

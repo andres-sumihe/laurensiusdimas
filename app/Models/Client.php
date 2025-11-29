@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
     use HasFactory;
+    use HasFileUploads;
 
     protected $fillable = [
         'name',
@@ -20,6 +22,14 @@ class Client extends Model
     protected $casts = [
         'is_visible' => 'boolean',
     ];
+
+    /**
+     * File upload fields for automatic cleanup.
+     */
+    public function getFileUploadFields(): array
+    {
+        return ['logo_url'];
+    }
 
     public function projects(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

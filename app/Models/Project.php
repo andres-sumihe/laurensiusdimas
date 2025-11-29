@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
     use HasFactory;
+    use HasFileUploads;
 
     protected $fillable = [
         'slug',
@@ -29,6 +31,14 @@ class Project extends Model
     protected $casts = [
         'is_visible' => 'boolean',
     ];
+
+    /**
+     * File upload fields for automatic cleanup.
+     */
+    public function getFileUploadFields(): array
+    {
+        return ['og_image'];
+    }
 
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {

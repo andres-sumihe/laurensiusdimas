@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SiteSetting extends Model
 {
     use HasFactory;
+    use HasFileUploads;
 
     protected $fillable = [
         'site_title',
@@ -39,6 +41,20 @@ class SiteSetting extends Model
     protected $casts = [
         'social_links' => 'array',
     ];
+
+    /**
+     * File upload fields for automatic cleanup.
+     */
+    public function getFileUploadFields(): array
+    {
+        return [
+            'favicon_url',
+            'og_image_url',
+            'hero_video_url',
+            'profile_picture_url',
+            'resume_url',
+        ];
+    }
 
     /**
      * Get the singleton instance (create if doesn't exist)

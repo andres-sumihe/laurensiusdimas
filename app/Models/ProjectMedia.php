@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProjectMedia extends Model
 {
     use HasFactory;
+    use HasFileUploads;
 
     protected $table = 'project_media';
 
@@ -29,6 +31,14 @@ class ProjectMedia extends Model
     public function project(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * File upload fields for automatic cleanup.
+     */
+    public function getFileUploadFields(): array
+    {
+        return ['url', 'thumbnail_url'];
     }
 
     /**

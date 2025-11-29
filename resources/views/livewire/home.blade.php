@@ -38,11 +38,6 @@
     $footerCtaLabel = $settings->footer_cta_label ?? null;
     $footerCtaUrl = $settings->footer_cta_url ?? null;
     
-    // Corporate Projects
-    $corporateProjects = \App\Models\Project::where('is_visible', true)
-        ->where('section', 'corporate')
-        ->orderBy('sort_order')
-        ->get();
 @endphp
 
 <div class="min-h-screen max-w-[1440px] mx-auto bg-black text-white">
@@ -65,21 +60,22 @@
 
         <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[90vw] sm:max-w-none">
             @php
+                $isVideo = preg_match('/\.(mp4|webm|mov)$/i', $heroBlobUrl);
                 $isImage = preg_match('/\.(gif|png|jpe?g|webp|svg)$/i', $heroBlobUrl);
             @endphp
-            @if($isImage)
-                <img
-                    src="{{ $heroBlobUrl }}"
-                    alt="Animated blob"
-                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
-                >
-            @else
+            @if($isVideo)
                 <video
                     class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
                     autoplay muted loop playsinline
                 >
                     <source src="{{ $heroBlobUrl }}" type="video/mp4">
                 </video>
+            @else
+                <img
+                    src="{{ $heroBlobUrl }}"
+                    alt="Animated blob"
+                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                >
             @endif
             <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
         </div>
@@ -201,148 +197,180 @@
                     </h2>
                     <div class="h-1 w-full sm:flex-1 bg-black"></div>
                 </div>
-                <p class="font-body font-bold text-[12px] sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-black">
-                    ESCO LIFESCIENCES GROUP
-                </p>
             </div>
 
-            {{-- Two-Row Infinite Marquee System --}}
-            <div class="space-y-4 sm:space-y-6 mt-8 sm:mt-10 md:mt-12 relative">
-                <style>
-                    @keyframes marquee-landscape {
-                        0% { transform: translateX(0); }
-                        100% { transform: translateX(-50%); }
-                    }
-                    @keyframes marquee-portrait {
-                        0% { transform: translateX(0); }
-                        100% { transform: translateX(-50%); }
-                    }
-                    .marquee-landscape-track {
-                        display: flex;
-                        width: max-content;
-                        animation: marquee-landscape 30s linear infinite;
-                    }
-                    .marquee-landscape-track:hover {
-                        animation-play-state: paused;
-                    }
-                    .marquee-portrait-track {
-                        display: flex;
-                        width: max-content;
-                        animation: marquee-portrait 25s linear infinite;
-                    }
-                    .marquee-portrait-track:hover {
-                        animation-play-state: paused;
-                    }
-                </style>
+            {{-- CSS for Marquee Animation --}}
+            <style>
+                @keyframes marquee-landscape {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                @keyframes marquee-portrait {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                .marquee-landscape-track {
+                    display: flex;
+                    width: max-content;
+                    animation: marquee-landscape 30s linear infinite;
+                }
+                .marquee-landscape-track:hover {
+                    animation-play-state: paused;
+                }
+                .marquee-portrait-track {
+                    display: flex;
+                    width: max-content;
+                    animation: marquee-portrait 25s linear infinite;
+                }
+                .marquee-portrait-track:hover {
+                    animation-play-state: paused;
+                }
+            </style>
 
-                {{-- Top Row: Landscape Images --}}
-                <div class="relative">
-                    {{-- Navigation Arrows - Hidden on mobile, visible on larger screens --}}
-                    <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-                    </button>
-                    <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-                    </button>
-
-                    {{-- Fade overlay left --}}
-                    <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
-                    {{-- Fade overlay right --}}
-                    <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
+            {{-- Loop through each client's projects --}}
+            @foreach($corporateProjects as $clientId => $clientProjects)
+                @php
+                    $client = $clientProjects->first()->client ?? null;
+                    $clientName = $client->name ?? 'Unknown Client';
                     
-                    {{-- Scrollable Area - Landscape --}}
-                    <div class="overflow-hidden">
-                        <div class="marquee-landscape-track">
-                            @php 
-                                // Filter only landscape projects
-                                $landscapeList = $corporateProjects->filter(fn($p) => $p->layout === 'landscape');
-                            @endphp
-                            {{-- First set --}}
-                            <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0">
-                                @foreach($landscapeList as $project)
-                                    @php
-                                        $firstMedia = collect($project->media_items ?? [])->first();
-                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
-                                    @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
-                                        @if($mediaUrl)
-                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                        @endif
+                    // Collect all corporate media from all projects for this client
+                    $allMedia = $clientProjects->flatMap(fn($p) => $p->corporateMedia ?? collect());
+                    $landscapeMedia = $allMedia->filter(fn($m) => $m->layout === 'landscape')->sortBy('sort_order');
+                    $portraitMedia = $allMedia->filter(fn($m) => $m->layout === 'portrait')->sortBy('sort_order');
+                @endphp
+                
+                <div class="{{ !$loop->first ? 'mt-12 sm:mt-16' : '' }}">
+                    {{-- Client Name --}}
+                    <p class="font-body font-bold text-[12px] sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-black mb-6 sm:mb-8">
+                        {{ $clientName }}
+                    </p>
+
+                    {{-- Two-Row Infinite Marquee System --}}
+                    <div class="space-y-4 sm:space-y-6 relative">
+                        {{-- Top Row: Landscape Images --}}
+                        @if($landscapeMedia->count() > 0)
+                        <div class="relative">
+                            {{-- Navigation Arrows --}}
+                            <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                                <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                                <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                            </button>
+
+                            {{-- Fade overlays --}}
+                            <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
+                            <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
+                            
+                            {{-- Scrollable Area - Landscape --}}
+                            <div class="overflow-hidden">
+                                <div class="marquee-landscape-track">
+                                    {{-- First set --}}
+                                    <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0">
+                                        @foreach($landscapeMedia as $media)
+                                            @php
+                                                $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
+                                                $mediaType = $media->type ?? 'image';
+                                            @endphp
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]"
+                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
+                                                @if($mediaUrl)
+                                                    @if($mediaType === 'video')
+                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
+                                                    @else
+                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
-                            </div>
-                            {{-- Duplicate set for seamless loop --}}
-                            <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0 ml-3 sm:ml-4 md:ml-6">
-                                @foreach($landscapeList as $project)
-                                    @php
-                                        $firstMedia = collect($project->media_items ?? [])->first();
-                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
-                                    @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
-                                        @if($mediaUrl)
-                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                        @endif
+                                    {{-- Duplicate set for seamless loop --}}
+                                    <div class="flex gap-3 sm:gap-4 md:gap-6 shrink-0 ml-3 sm:ml-4 md:ml-6">
+                                        @foreach($landscapeMedia as $media)
+                                            @php
+                                                $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
+                                                $mediaType = $media->type ?? 'image';
+                                            @endphp
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]"
+                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
+                                                @if($mediaUrl)
+                                                    @if($mediaType === 'video')
+                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
+                                                    @else
+                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                        @endif
 
-                {{-- Bottom Row: Portrait Images --}}
-                <div class="relative">
-                    {{-- Navigation Arrows - Hidden on mobile, visible on larger screens --}}
-                    <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-                    </button>
-                    <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
-                        <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-                    </button>
+                        {{-- Bottom Row: Portrait Images --}}
+                        @if($portraitMedia->count() > 0)
+                        <div class="relative">
+                            {{-- Navigation Arrows --}}
+                            <button class="hidden sm:block absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                                <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <button class="hidden sm:block absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg text-black hover:text-gray-600 transition-all">
+                                <svg width="20" height="20" class="sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                            </button>
 
-                    {{-- Fade overlay left --}}
-                    <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
-                    {{-- Fade overlay right --}}
-                    <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
-                    
-                    {{-- Scrollable Area - Portrait --}}
-                    <div class="overflow-hidden">
-                        <div class="marquee-portrait-track">
-                            @php 
-                                // Filter only portrait projects
-                                $portraitList = $corporateProjects->filter(fn($p) => $p->layout === 'portrait');
-                            @endphp
-                            {{-- First set --}}
-                            <div class="flex gap-3 sm:gap-4 shrink-0">
-                                @foreach($portraitList as $project)
-                                    @php
-                                        $firstMedia = collect($project->media_items ?? [])->first();
-                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
-                                    @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
-                                        @if($mediaUrl)
-                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                        @endif
+                            {{-- Fade overlays --}}
+                            <div class="absolute -left-1 sm:-left-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-r from-white to-transparent"></div>
+                            <div class="absolute -right-1 sm:-right-2.5 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-24 bg-gradient-to-l from-white to-transparent"></div>
+                            
+                            {{-- Scrollable Area - Portrait --}}
+                            <div class="overflow-hidden">
+                                <div class="marquee-portrait-track">
+                                    {{-- First set --}}
+                                    <div class="flex gap-3 sm:gap-4 shrink-0">
+                                        @foreach($portraitMedia as $media)
+                                            @php
+                                                $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
+                                                $mediaType = $media->type ?? 'image';
+                                            @endphp
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]"
+                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
+                                                @if($mediaUrl)
+                                                    @if($mediaType === 'video')
+                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
+                                                    @else
+                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
-                            </div>
-                            {{-- Duplicate set for seamless loop --}}
-                            <div class="flex gap-3 sm:gap-4 shrink-0 ml-3 sm:ml-4">
-                                @foreach($portraitList as $project)
-                                    @php
-                                        $firstMedia = collect($project->media_items ?? [])->first();
-                                        $mediaUrl = $firstMedia ? (str_starts_with($firstMedia['url'] ?? '', 'http') ? $firstMedia['url'] : Storage::url($firstMedia['url'] ?? '')) : null;
-                                    @endphp
-                                    <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
-                                        @if($mediaUrl)
-                                            <img src="{{ $mediaUrl }}" alt="{{ $project->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                        @endif
+                                    {{-- Duplicate set for seamless loop --}}
+                                    <div class="flex gap-3 sm:gap-4 shrink-0 ml-3 sm:ml-4">
+                                        @foreach($portraitMedia as $media)
+                                            @php
+                                                $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
+                                                $mediaType = $media->type ?? 'image';
+                                            @endphp
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]"
+                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
+                                                @if($mediaUrl)
+                                                    @if($mediaType === 'video')
+                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
+                                                    @else
+                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
+                                </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </section>
     @endif
@@ -530,9 +558,18 @@
                     @if($contactEmail)
                         <a href="mailto:{{ $contactEmail }}" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Email</a>
                     @endif
-                    <a href="https://instagram.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Instagram</a>
-                    <a href="https://behance.net" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Behance</a>
-                    <a href="https://linkedin.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">LinkedIn</a>
+                    @forelse($socialLinks as $link)
+                        @if(!empty($link['url']) && !empty($link['platform']))
+                            <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">
+                                {{ $link['platform'] }}
+                            </a>
+                        @endif
+                    @empty
+                        {{-- Fallback links if no social links configured --}}
+                        <a href="https://instagram.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Instagram</a>
+                        <a href="https://behance.net" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">Behance</a>
+                        <a href="https://linkedin.com" target="_blank" class="text-[12px] sm:text-base text-gray-400 hover:text-white transition-colors">LinkedIn</a>
+                    @endforelse
                 </div>
             </div>
         </div>

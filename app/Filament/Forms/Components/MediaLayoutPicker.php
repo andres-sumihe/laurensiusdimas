@@ -3,6 +3,7 @@
 namespace App\Filament\Forms\Components;
 
 use Filament\Forms\Components\Field;
+use Illuminate\Validation\ValidationException;
 
 class MediaLayoutPicker extends Field
 {
@@ -13,6 +14,32 @@ class MediaLayoutPicker extends Field
         parent::setUp();
 
         $this->default([]);
+
+        // Add validation using Filament's afterStateUpdated or dehydration
+        $this->dehydrateStateUsing(function ($state) {
+            return $state;
+        });
+
+        // Custom validation via rule
+        $this->rule(function () {
+            return function (string $attribute, $value, $fail) {
+                $layout = $this->getLivewire()->data['layout'] ?? 'three_two';
+                $requiredCount = $this->getSlotCountForLayout($layout);
+                
+                $filledCount = 0;
+                if (is_array($value)) {
+                    foreach ($value as $item) {
+                        if (is_array($item) && !empty($item['url'])) {
+                            $filledCount++;
+                        }
+                    }
+                }
+                
+                if ($filledCount < $requiredCount) {
+                    $fail("Media gallery requires {$requiredCount} items for the selected layout. Currently {$filledCount} filled.");
+                }
+            };
+        });
     }
 
     public function getLayoutSlots(): array
@@ -57,6 +84,12 @@ class MediaLayoutPicker extends Field
                 ['cols' => 6, 'label' => '5'],
                 ['cols' => 6, 'label' => '6'],
             ],
+            'landscape' => [
+                ['cols' => 12, 'label' => '1'],
+            ],
+            'portrait' => [
+                ['cols' => 12, 'label' => '1'],
+            ],
             default => [
                 ['cols' => 12, 'label' => '1'],
             ],
@@ -66,5 +99,16 @@ class MediaLayoutPicker extends Field
     public function getSlotCount(): int
     {
         return count($this->getLayoutSlots());
+    }
+
+    public function getSlotCountForLayout(string $layout): int
+    {
+        return match ($layout) {
+            'single', 'landscape', 'portrait' => 1,
+            'two' => 2,
+            'three_two', 'four_one' => 5,
+            'three_three', 'four_two' => 6,
+            default => 1,
+        };
     }
 }

@@ -23,6 +23,15 @@ class Home extends Component
             ->orderBy('sort_order')
             ->get();
         
+        // Corporate projects - grouped by client
+        $corporateProjects = Project::where('section', 'corporate')
+            ->where('is_visible', true)
+            ->whereNotNull('client_id') // Only show if connected to client
+            ->with(['client', 'corporateMedia'])
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('client_id'); // Group by client
+        
         // Older projects (archive section)
         $olderProjects = Project::where('is_visible', true)
             ->where('section', 'older')
@@ -38,6 +47,7 @@ class Home extends Component
                 'curatedProjects' => $curatedProjects,
                 'olderProjects' => $olderProjects,
                 'clients' => $clients,
+                'corporateProjects' => $corporateProjects,
             ])
             ->layoutData([
                 'title' => $settings->site_title ?? 'Laurensius Dimas',

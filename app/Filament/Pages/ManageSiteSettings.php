@@ -69,12 +69,15 @@ class ManageSiteSettings extends Page
                             ->icon('heroicon-o-film')
                             ->schema([
                                 Forms\Components\FileUpload::make('hero_video_url')
-                                                    ->label('Hero Video/GIF')
-                                                    ->directory('settings/hero')
-                                                    ->preserveFilenames()
-                                                    ->maxSize(25600) // 25MB in KB
-                                                    ->acceptedFileTypes(['image/gif', 'video/mp4'])
-                                                    ->helperText('Upload video or GIF for the landing intro. Max size: 25MB. Accepts GIF or MP4.'),
+                                    ->label('Hero Video/GIF')
+                                    ->directory('settings/hero')
+                                    ->disk('public')
+                                    ->visibility('public')
+                                    ->preserveFilenames()
+                                    ->maxSize(25600) // 25MB in KB
+                                    ->acceptedFileTypes(['image/gif', 'video/mp4', 'video/webm', 'video/quicktime'])
+                                    ->helperText('Upload video (MP4/WebM) or GIF for the landing intro. Max size: 25MB.')
+                                    ->columnSpanFull(),
                                 
                                 Forms\Components\TextInput::make('hero_headline')
                                     ->label('Headline')

@@ -82,6 +82,83 @@
 <body class="antialiased bg-neutral-950 text-white font-body">
     {{ $slot }}
     
+    {{-- Lightbox Modal for Media Preview --}}
+    <div 
+        x-data="{ 
+            open: false, 
+            url: '', 
+            type: 'image',
+            close() { 
+                this.open = false; 
+                this.url = ''; 
+            }
+        }"
+        @open-lightbox.window="open = true; url = $event.detail.url; type = $event.detail.type"
+        @keydown.escape.window="close()"
+    >
+        {{-- Backdrop --}}
+        <div 
+            x-show="open"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            @click="close()"
+            class="fixed inset-0 z-[999] bg-black/90 backdrop-blur-sm"
+            x-cloak
+        ></div>
+        
+        {{-- Modal Content --}}
+        <div 
+            x-show="open"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8"
+            @click.self="close()"
+            x-cloak
+        >
+            {{-- Close Button --}}
+            <button 
+                @click="close()"
+                class="absolute top-4 right-4 sm:top-8 sm:right-8 z-[1001] p-2 text-white/70 hover:text-white transition-colors"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            {{-- Media Container --}}
+            <div class="max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+                {{-- Image --}}
+                <template x-if="type === 'image'">
+                    <img 
+                        :src="url"
+                        alt="Preview"
+                        class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                    >
+                </template>
+                
+                {{-- Video --}}
+                <template x-if="type === 'video'">
+                    <video 
+                        :src="url"
+                        controls
+                        autoplay
+                        class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                    >
+                        Your browser does not support the video tag.
+                    </video>
+                </template>
+            </div>
+        </div>
+    </div>
+    
     @livewireScripts
 </body>
 </html>

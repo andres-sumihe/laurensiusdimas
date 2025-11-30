@@ -8,12 +8,35 @@ use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Filament\Notifications\Notification;
+use App\Models\Project;
 
 class CreateProject extends CreateRecord
 {
     use WithFileUploads;
 
     protected static string $resource = ProjectResource::class;
+
+    /**
+     * Prevent creating more than one "older" project
+     */
+    protected function beforeCreate(): void
+    {
+        if (($this->data['section'] ?? '') === 'older') {
+            $olderExists = Project::where('section', 'older')->exists();
+            
+            if ($olderExists) {
+                Notification::make()
+                    ->danger()
+                    ->title('Cannot Create Older Project')
+                    ->body('An Older Projects entry already exists. Only one Older Projects section is allowed.')
+                    ->persistent()
+                    ->send();
+                
+                $this->halt();
+            }
+        }
+    }
 
     public $mediaUpload;
 

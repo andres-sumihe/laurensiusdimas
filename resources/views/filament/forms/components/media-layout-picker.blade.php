@@ -58,7 +58,62 @@
                     this.mediaItems[index] = { type: 'image', url: null, thumbnailUrl: null };
                 }
                 this.mediaItems[index][field] = value;
+                
+                // Auto-detect YouTube URL and set type + thumbnail
+                if (field === 'url' && value) {
+                    const youtubeId = this.extractYouTubeId(value);
+                    if (youtubeId) {
+                        this.mediaItems[index].type = 'youtube';
+                        // Auto-set thumbnail from YouTube if not already set
+                        if (!this.mediaItems[index].thumbnailUrl) {
+                            this.mediaItems[index].thumbnailUrl = 'https://img.youtube.com/vi/' + youtubeId + '/maxresdefault.jpg';
+                        }
+                    }
+                }
+                
                 this.updateState();
+            },
+            
+            // Extract YouTube video ID from various URL formats
+            extractYouTubeId(url) {
+                if (!url) return null;
+                
+                // Match various YouTube URL formats
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+                    /^([a-zA-Z0-9_-]{11})$/ // Just the ID
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match) return match[1];
+                }
+                
+                return null;
+            },
+            
+            // Get YouTube embed URL from video ID or URL
+            getYouTubeEmbedUrl(url) {
+                const id = this.extractYouTubeId(url);
+                return id ? 'https://www.youtube.com/embed/' + id : null;
+            },
+            
+            // Check if media is YouTube
+            isYouTube(index) {
+                const media = this.mediaItems[index];
+                return media?.type === 'youtube' || (media?.url && this.extractYouTubeId(media.url));
+            },
+            
+            // Get YouTube thumbnail
+            getYouTubeThumbnail(index) {
+                const media = this.mediaItems[index];
+                if (!media?.url) return null;
+                
+                const id = this.extractYouTubeId(media.url);
+                if (id) {
+                    return media.thumbnailUrl || 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
+                }
+                return null;
             },
             
             updateState() {
@@ -72,6 +127,11 @@
             getPreviewUrl(index) {
                 const media = this.mediaItems[index];
                 if (!media?.url) return null;
+                
+                // For YouTube, return thumbnail
+                if (this.isYouTube(index)) {
+                    return this.getYouTubeThumbnail(index);
+                }
                 
                 if (media.url.startsWith('http')) {
                     return media.url;
@@ -291,8 +351,14 @@
                                 <x-heroicon-o-trash class="w-5 h-5 text-white" />
                             </button>
                         </div>
-                        <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px;">
+                        <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
                             {{ $slot['label'] }}
+                            {{-- YouTube badge --}}
+                            <template x-if="isYouTube({{ $index }})">
+                                <svg style="width: 16px; height: 16px; color: #FF0000;" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -370,13 +436,17 @@
                                 style="appearance: none; padding-right: 2.5rem; background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E'); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             >
                                 <option value="image">Image</option>
-                                <option value="video">Video</option>
+                                <option value="video">Video (MP4/WebM)</option>
+                                <option value="youtube">YouTube Video</option>
                             </select>
                         </div>
+                        <p x-show="getMedia(activeSlot).type === 'youtube'" style="font-size: 12px; color: #9CA3AF; margin-top: 8px;">
+                            Paste a YouTube URL below (e.g., youtube.com/watch?v=... or youtu.be/...)
+                        </p>
                     </div>
 
-                    {{-- File Upload --}}
-                    <div>
+                    {{-- File Upload (hidden for YouTube) --}}
+                    <div x-show="getMedia(activeSlot).type !== 'youtube'">
                         <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3">
                             <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
                                 Upload File
@@ -476,11 +546,81 @@
                         </div>
                     </div>
 
-                    {{-- Thumbnail (for videos) --}}
-                    <div x-show="getMedia(activeSlot).type === 'video'">
+                    {{-- YouTube URL Input (shown only for YouTube type) --}}
+                    <div x-show="getMedia(activeSlot).type === 'youtube'">
                         <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3">
                             <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
-                                Thumbnail URL (optional)
+                                YouTube URL
+                            </span>
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <input 
+                                type="text"
+                                placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                                x-bind:value="getMedia(activeSlot).url || ''"
+                                @input="setMedia(activeSlot, 'url', $event.target.value)"
+                                class="fi-input block w-full border-none py-1.5 text-base text-gray-950 transition duration-75 placeholder:text-gray-400 focus:ring-2 focus:ring-primary-600 disabled:text-gray-500 disabled:[-webkit-text-fill-color:theme(colors.gray.500)] disabled:placeholder:[-webkit-text-fill-color:theme(colors.gray.400)] dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:ring-primary-500 sm:text-sm sm:leading-6 bg-white shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 rounded-lg px-3"
+                            />
+                            
+                            {{-- YouTube Preview --}}
+                            <template x-if="getMedia(activeSlot).url && extractYouTubeId(getMedia(activeSlot).url)">
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; background: #1F2937;">
+                                        <img 
+                                            x-bind:src="getYouTubeThumbnail(activeSlot)"
+                                            style="width: 100%; height: 100%; object-fit: cover;"
+                                            onerror="this.style.display='none'"
+                                        />
+                                        {{-- YouTube Play Icon Overlay --}}
+                                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+                                            <div style="width: 68px; height: 48px; background: rgba(255, 0, 0, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg style="width: 24px; height: 24px; color: white; margin-left: 4px;" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #1F2937; border-radius: 8px; border: 1px solid #374151;">
+                                        <svg style="width: 24px; height: 24px; color: #FF0000; flex-shrink: 0;" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                        </svg>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <p style="font-size: 14px; color: white; font-weight: 500; margin: 0;">YouTube Video</p>
+                                            <p style="font-size: 12px; color: #9CA3AF; margin: 2px 0 0;">
+                                                ID: <span x-text="extractYouTubeId(getMedia(activeSlot).url)"></span>
+                                            </p>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            @click="removeMedia(activeSlot)"
+                                            style="padding: 8px; color: #F87171; background: rgba(248, 113, 113, 0.1); border-radius: 6px; border: none; cursor: pointer;"
+                                            class="hover:bg-red-500/20"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            {{-- Invalid YouTube URL warning --}}
+                            <template x-if="getMedia(activeSlot).url && !extractYouTubeId(getMedia(activeSlot).url)">
+                                <div style="padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; color: #F87171; flex-shrink: 0;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                    </svg>
+                                    <p style="font-size: 13px; color: #F87171; margin: 0;">Invalid YouTube URL. Please enter a valid YouTube link.</p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Thumbnail (for videos and YouTube) --}}
+                    <div x-show="getMedia(activeSlot).type === 'video' || getMedia(activeSlot).type === 'youtube'">
+                        <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3">
+                            <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
+                                Thumbnail URL <span x-show="getMedia(activeSlot).type === 'youtube'" style="font-weight: normal; color: #9CA3AF;">(auto-fetched from YouTube)</span>
                             </span>
                         </label>
                         <div class="mt-2">

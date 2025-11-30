@@ -88,12 +88,63 @@
             open: false, 
             url: '', 
             type: 'image',
+            youtubeId: null,
+            
+            // Extract YouTube video ID from various URL formats
+            extractYouTubeId(url) {
+                if (!url) return null;
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+                    /^([a-zA-Z0-9_-]{11})$/
+                ];
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match) return match[1];
+                }
+                return null;
+            },
+            
+            openLightbox(data) {
+                this.url = data.url;
+                this.type = data.type;
+                
+                // Auto-detect YouTube if type is youtube or URL is a YouTube link
+                if (this.type === 'youtube' || this.extractYouTubeId(this.url)) {
+                    this.youtubeId = this.extractYouTubeId(this.url);
+                    this.type = 'youtube';
+                } else {
+                    this.youtubeId = null;
+                }
+                
+                this.open = true;
+                
+                // Set YouTube iframe src after DOM update to trigger autoplay
+                this.$nextTick(() => {
+                    if (this.type === 'youtube' && this.youtubeId && this.$refs.youtubePlayer) {
+                        // Full parameters to hide recommendations and branding
+                        this.$refs.youtubePlayer.src = 'https://www.youtube.com/embed/' + this.youtubeId + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&cc_load_policy=0&origin=' + encodeURIComponent(window.location.origin);
+                    }
+                    if (this.type === 'video' && this.$refs.videoPlayer) {
+                        this.$refs.videoPlayer.play();
+                    }
+                });
+            },
+            
             close() { 
                 this.open = false; 
                 this.url = ''; 
+                this.youtubeId = null;
+                // Clear YouTube iframe to stop video
+                if (this.$refs.youtubePlayer) {
+                    this.$refs.youtubePlayer.src = '';
+                }
+                // Pause video
+                if (this.$refs.videoPlayer) {
+                    this.$refs.videoPlayer.pause();
+                }
             }
         }"
-        @open-lightbox.window="open = true; url = $event.detail.url; type = $event.detail.type"
+        @open-lightbox.window="openLightbox($event.detail)"
         @keydown.escape.window="close()"
     >
         {{-- Backdrop --}}
@@ -134,27 +185,41 @@
             </button>
             
             {{-- Media Container --}}
-            <div class="max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            <div class="w-full h-full flex items-center justify-center p-4 sm:p-8">
                 {{-- Image --}}
-                <template x-if="type === 'image'">
-                    <img 
-                        :src="url"
-                        alt="Preview"
-                        class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                    >
-                </template>
+                <img 
+                    x-show="type === 'image'"
+                    x-bind:src="url"
+                    alt="Preview"
+                    class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                >
                 
                 {{-- Video --}}
-                <template x-if="type === 'video'">
-                    <video 
-                        :src="url"
-                        controls
-                        autoplay
-                        class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                    >
-                        Your browser does not support the video tag.
-                    </video>
-                </template>
+                <video 
+                    x-show="type === 'video'"
+                    x-bind:src="url"
+                    x-ref="videoPlayer"
+                    controls
+                    class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                >
+                    Your browser does not support the video tag.
+                </video>
+                
+                {{-- YouTube Embed - Full Size --}}
+                <div 
+                    x-show="type === 'youtube' && youtubeId"
+                    class="w-full h-full max-w-[90vw] max-h-[85vh] flex items-center justify-center"
+                >
+                    <div class="w-full aspect-video max-h-[85vh]" style="max-width: min(90vw, calc(85vh * 16 / 9));">
+                        <iframe 
+                            x-ref="youtubePlayer"
+                            class="w-full h-full rounded-xl shadow-2xl"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

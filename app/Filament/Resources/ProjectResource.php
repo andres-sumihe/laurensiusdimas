@@ -57,15 +57,37 @@ class ProjectResource extends Resource
 
                         Forms\Components\Select::make('section')
                             ->label('Section')
-                            ->options([
-                                'curated' => 'Curated Projects',
-                                'corporate' => 'Corporate Projects',
-                                'older' => 'Older Projects',
-                            ])
+                            ->options(function (callable $get, ?Project $record) {
+                                $options = [
+                                    'curated' => 'Curated Projects',
+                                    'corporate' => 'Corporate Projects',
+                                ];
+                                
+                                // Check if an older project already exists
+                                $olderExists = Project::where('section', 'older')
+                                    ->when($record, fn ($query) => $query->where('id', '!=', $record->id))
+                                    ->exists();
+                                
+                                // Only show older option if none exists, or if current record is the older project
+                                if (!$olderExists || ($record && $record->section === 'older')) {
+                                    $options['older'] = 'Older Projects';
+                                }
+                                
+                                return $options;
+                            })
                             ->default('curated')
                             ->required()
                             ->reactive() // Makes other fields respond to changes
-                            ->helperText('Corporate projects require a client connection.'),
+                            ->helperText(function (callable $get, ?Project $record) {
+                                $olderExists = Project::where('section', 'older')
+                                    ->when($record, fn ($query) => $query->where('id', '!=', $record->id))
+                                    ->exists();
+                                
+                                if ($olderExists && (!$record || $record->section !== 'older')) {
+                                    return 'Corporate projects require a client connection. Note: Older Projects section is limited to one project.';
+                                }
+                                return 'Corporate projects require a client connection.';
+                            }),
 
                         // Client field - ONLY visible for corporate projects
                         Forms\Components\Select::make('client_id')
@@ -79,19 +101,23 @@ class ProjectResource extends Resource
 
                         Forms\Components\Select::make('layout')
                             ->label('Layout')
-                            ->options([
-                                'single' => 'Single (Hero)',
-                                'two' => 'Two (Split)',
-                                'three_two' => 'Three-Two (5-Up)',
-                                'three_three' => 'Three-Three (6-Up)',
-                                'four_one' => 'Four-One (5-Up)',
-                                'four_two' => 'Four-Two (6-Up)',
-                            ])
-                            ->default('three_two')
+                            ->options(fn (callable $get) => $get('section') === 'older' 
+                                ? ['single' => 'Single (Hero)']
+                                : [
+                                    'single' => 'Single (Hero)',
+                                    'two' => 'Two (Split)',
+                                    'three_two' => 'Three-Two (5-Up)',
+                                    'three_three' => 'Three-Three (6-Up)',
+                                    'four_one' => 'Four-One (5-Up)',
+                                    'four_two' => 'Four-Two (6-Up)',
+                                ])
+                            ->default(fn (callable $get) => $get('section') === 'older' ? 'single' : 'three_two')
                             ->required(fn (callable $get) => $get('section') !== 'corporate')
                             ->hidden(fn (callable $get) => $get('section') === 'corporate')
                             ->live(debounce: 100)
-                            ->helperText('Choose layout first, then add media to each slot below.'),
+                            ->helperText(fn (callable $get) => $get('section') === 'older'
+                                ? 'Older projects use Single (Hero) layout only.'
+                                : 'Choose layout first, then add media to each slot below.'),
                         
                         Forms\Components\RichEditor::make('description')
                             ->columnSpanFull()

@@ -11,30 +11,73 @@
         default => $layoutRaw,
     };
     
+    // Helper function to extract YouTube video ID
+    $extractYouTubeId = function($url) {
+        if (!$url) return null;
+        $patterns = [
+            '/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/',
+            '/^([a-zA-Z0-9_-]{11})$/'
+        ];
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                return $matches[1];
+            }
+        }
+        return null;
+    };
+    
     // Use the gridMedia relationship (unified project_media table with slot_index)
     // Falls back to old media_items JSON if gridMedia is empty (for backwards compatibility during migration)
     $mediaFromDb = $project->gridMedia ?? collect();
     
     if ($mediaFromDb->count() > 0) {
         // New unified table approach
-        $mediaItems = $mediaFromDb->map(function ($media) {
+        $mediaItems = $mediaFromDb->map(function ($media) use ($extractYouTubeId) {
             $url = $media->url ?? null;
             $thumb = $media->thumbnail_url ?? null;
+            $type = $media->type ?? 'image';
+            
+            // Auto-detect YouTube from URL if type not explicitly set
+            $youtubeId = $extractYouTubeId($url);
+            if ($youtubeId && $type !== 'youtube') {
+                $type = 'youtube';
+            }
+            
+            // For YouTube, generate thumbnail if not provided
+            if ($type === 'youtube' && $youtubeId && !$thumb) {
+                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+            }
+            
             return [
-                'type' => $media->type ?? 'image',
+                'type' => $type,
                 'url' => $url ? (str_starts_with($url, 'http') ? $url : Storage::url($url)) : null,
                 'thumb' => $thumb ? (str_starts_with($thumb, 'http') ? $thumb : Storage::url($thumb)) : null,
+                'youtubeId' => $youtubeId,
             ];
         })->filter(fn ($m) => $m['url'])->values();
     } else {
         // Fallback to old JSON column during migration period
-        $mediaItems = collect($project->media_items ?? [])->map(function ($item) {
+        $mediaItems = collect($project->media_items ?? [])->map(function ($item) use ($extractYouTubeId) {
             $url = $item['url'] ?? null;
             $thumb = $item['thumbnailUrl'] ?? null;
+            $type = $item['type'] ?? 'image';
+            
+            // Auto-detect YouTube from URL
+            $youtubeId = $extractYouTubeId($url);
+            if ($youtubeId && $type !== 'youtube') {
+                $type = 'youtube';
+            }
+            
+            // For YouTube, generate thumbnail if not provided
+            if ($type === 'youtube' && $youtubeId && !$thumb) {
+                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+            }
+            
             return [
-                'type' => $item['type'] ?? 'image',
+                'type' => $type,
                 'url' => $url ? (str_starts_with($url, 'http') ? $url : Storage::url($url)) : null,
                 'thumb' => $thumb ? (str_starts_with($thumb, 'http') ? $thumb : Storage::url($thumb)) : null,
+                'youtubeId' => $youtubeId,
             ];
         })->filter(fn ($m) => $m['url'])->values();
     }
@@ -49,16 +92,10 @@
         {{-- Single Hero Layout --}}
         @php $item = $mediaItems->first(); @endphp
         @if($item)
-            <div class="w-full overflow-hidden bg-neutral-100 cursor-pointer" 
+            <div class="w-full overflow-hidden bg-neutral-100 cursor-pointer group" 
                  @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                <div class="aspect-video">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                <div class="aspect-video relative">
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             </div>
         @endif
@@ -69,13 +106,7 @@
             @foreach($mediaItems->take(2) as $item)
                 <div class="sm:col-span-6 relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
         </div>
@@ -86,25 +117,13 @@
             @foreach($mediaItems->take(3) as $index => $item)
                 <div class="{{ $index === 0 ? 'col-span-2 sm:col-span-4' : 'col-span-1 sm:col-span-4' }} relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
             @foreach($mediaItems->slice(3)->take(2) as $item)
                 <div class="col-span-1 sm:col-span-6 relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
         </div>
@@ -115,13 +134,7 @@
             @foreach($mediaItems->take(6) as $index => $item)
                 <div class="{{ $index % 3 === 0 && $index < 6 ? 'col-span-2 sm:col-span-4' : 'col-span-1 sm:col-span-4' }} relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
         </div>
@@ -132,26 +145,14 @@
             @foreach($mediaItems->take(4) as $item)
                 <div class="col-span-1 sm:col-span-3 relative group overflow-hidden bg-neutral-100 aspect-square sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
             @if($mediaItems->count() > 4)
                 @php $item = $mediaItems->get(4); @endphp
                 <div class="col-span-2 sm:col-span-12 relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-[21/9] cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endif
         </div>
@@ -162,25 +163,13 @@
             @foreach($mediaItems->take(4) as $item)
                 <div class="col-span-1 sm:col-span-3 relative group overflow-hidden bg-neutral-100 aspect-square sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
             @foreach($mediaItems->slice(4)->take(2) as $item)
                 <div class="col-span-1 sm:col-span-6 relative group overflow-hidden bg-neutral-100 aspect-video sm:aspect-4/3 md:aspect-video cursor-pointer"
                      @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             @endforeach
         </div>
@@ -191,14 +180,8 @@
         @if($item)
             <div class="w-full overflow-hidden bg-neutral-100 cursor-pointer"
                  @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
-                <div class="aspect-video">
-                    @if($item['type'] === 'video')
-                        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{{ $item['thumb'] }}">
-                            <source src="{{ $item['url'] }}" type="video/mp4">
-                        </video>
-                    @else
-                        <img src="{{ $item['url'] }}" alt="{{ $project->title }}" class="h-full w-full object-cover" loading="lazy">
-                    @endif
+                <div class="aspect-video relative">
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
                 </div>
             </div>
         @endif

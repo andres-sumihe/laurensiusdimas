@@ -395,15 +395,15 @@
     @endif
 
     {{-- ========================================
-         OLDER PROJECTS (YouTube Embed Style)
+         OLDER PROJECTS (Single Hero Cards)
     ========================================= --}}
     @if($olderProjects->count() > 0)
-    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16  rounded-b-4xl">
+    <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 rounded-b-4xl">
         <div class="w-full mx-auto max-w-[1200px] mb-[-180px] sm:mb-[-360px]">
             {{-- Section Header --}}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-2">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
                 <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
-                    OLDER PROJECTS
+                    {{ $olderHeading }}
                 </h2>
                 <span class="font-body font-bold text-base sm:text-lg md:text-xl uppercase tracking-widest text-black">
                     {{ $olderYearRange }}
@@ -411,27 +411,251 @@
                 <div class="h-1 w-full sm:flex-1 bg-black"></div>
             </div>
 
-            {{-- YouTube Embed Container --}}
-            <div class="relative bg-[#d9d9d9] mt-6 sm:mt-8 md:mt-10 w-full aspect-video rounded-xl">
-                @php
-                    $firstOlderProject = $olderProjects->first();
-                    $youtubeUrl = $firstOlderProject->youtube_url ?? null;
-                @endphp
-                @if($youtubeUrl)
-                    <iframe 
-                        class="absolute inset-0 w-full h-full" 
-                        src="{{ $youtubeUrl }}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen
-                    ></iframe>
-                @else
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <p class="font-body font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-[0.2em] sm:tracking-[0.3em] text-gray-500 uppercase text-center px-4">
-                            EMBED YOUTUBE URL
-                        </p>
-                    </div>
-                @endif
+            {{-- Older Projects Grid (Simple Media Cards) --}}
+            <div class="flex flex-col gap-8 sm:gap-10 md:gap-12">
+                @foreach($olderProjects as $project)
+                    @php
+                        // Get the first media item for this project
+                        $media = $project->projectMedia->first();
+                        $mediaUrl = null;
+                        $mediaType = 'image';
+                        $thumbnailUrl = null;
+                        $youtubeId = null;
+                        
+                        if ($media) {
+                            $mediaType = $media->type ?? 'image';
+                            $mediaUrl = $media->url;
+                            $thumbnailUrl = $media->thumbnail_url;
+                            
+                            // Extract YouTube ID if it's a YouTube video
+                            if ($mediaType === 'youtube' || (str_contains($mediaUrl ?? '', 'youtube') || str_contains($mediaUrl ?? '', 'youtu.be'))) {
+                                preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/', $mediaUrl, $matches);
+                                $youtubeId = $matches[1] ?? null;
+                                if ($youtubeId) {
+                                    $mediaType = 'youtube';
+                                    $thumbnailUrl = $thumbnailUrl ?: "https://img.youtube.com/vi/{$youtubeId}/maxresdefault.jpg";
+                                }
+                            }
+                            
+                            // Build full URL for local files
+                            if ($mediaUrl && !str_starts_with($mediaUrl, 'http') && $mediaType !== 'youtube') {
+                                $mediaUrl = Storage::url($mediaUrl);
+                            }
+                            if ($thumbnailUrl && !str_starts_with($thumbnailUrl, 'http')) {
+                                $thumbnailUrl = Storage::url($thumbnailUrl);
+                            }
+                        }
+                    @endphp
+                    
+                    @if($media)
+                        {{-- YouTube Video with Inline Autoplay on Scroll --}}
+                        @if($mediaType === 'youtube' && $youtubeId)
+                            <div 
+                                x-data="{ 
+                                    inView: false, 
+                                    hasPlayed: false,
+                                    isMuted: true,
+                                    isPaused: false,
+                                    youtubeId: '{{ $youtubeId }}',
+                                    player: null,
+                                    playerId: 'yt-player-{{ $youtubeId }}-{{ $loop->index }}',
+                                    thumbnailUrl: '{{ $thumbnailUrl }}',
+                                    
+                                    init() {
+                                        // Load YouTube IFrame API if not already loaded
+                                        if (!window.YT) {
+                                            const tag = document.createElement('script');
+                                            tag.src = 'https://www.youtube.com/iframe_api';
+                                            const firstScriptTag = document.getElementsByTagName('script')[0];
+                                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                                        }
+                                        
+                                        const observer = new IntersectionObserver((entries) => {
+                                            entries.forEach(entry => {
+                                                if (entry.isIntersecting && !this.hasPlayed) {
+                                                    this.inView = true;
+                                                    this.hasPlayed = true;
+                                                    this.loadPlayer();
+                                                }
+                                            });
+                                        }, { threshold: 0.5 });
+                                        observer.observe(this.$el);
+                                    },
+                                    
+                                    loadPlayer() {
+                                        const checkYT = setInterval(() => {
+                                            if (window.YT && window.YT.Player) {
+                                                clearInterval(checkYT);
+                                                this.player = new YT.Player(this.playerId, {
+                                                    videoId: this.youtubeId,
+                                                    playerVars: {
+                                                        autoplay: 1,
+                                                        mute: 1,
+                                                        loop: 1,
+                                                        playlist: this.youtubeId,
+                                                        controls: 0,
+                                                        showinfo: 0,
+                                                        rel: 0,
+                                                        modestbranding: 1,
+                                                        playsinline: 1,
+                                                        fs: 0,
+                                                        iv_load_policy: 3,
+                                                        disablekb: 1,
+                                                        cc_load_policy: 0,
+                                                        origin: window.location.origin
+                                                    },
+                                                    events: {
+                                                        onReady: (event) => {
+                                                            event.target.playVideo();
+                                                        },
+                                                        onStateChange: (event) => {
+                                                            // Track paused state to show overlay
+                                                            if (event.data === YT.PlayerState.PAUSED) {
+                                                                this.isPaused = true;
+                                                            } else if (event.data === YT.PlayerState.PLAYING) {
+                                                                this.isPaused = false;
+                                                            }
+                                                            // When video ends, restart immediately
+                                                            if (event.data === YT.PlayerState.ENDED) {
+                                                                event.target.seekTo(0);
+                                                                event.target.playVideo();
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }, 100);
+                                    },
+                                    
+                                    toggleMute() {
+                                        if (this.player && this.player.isMuted) {
+                                            if (this.player.isMuted()) {
+                                                this.player.unMute();
+                                                this.isMuted = false;
+                                            } else {
+                                                this.player.mute();
+                                                this.isMuted = true;
+                                            }
+                                        }
+                                    },
+                                    
+                                    togglePlay() {
+                                        if (this.player) {
+                                            if (this.isPaused) {
+                                                this.player.playVideo();
+                                            } else {
+                                                this.player.pauseVideo();
+                                            }
+                                        }
+                                    }
+                                }"
+                                class="relative w-full aspect-video rounded-3xl overflow-hidden group"
+                            >
+                                {{-- Thumbnail (shown before video loads) --}}
+                                <img 
+                                    x-show="!inView"
+                                    src="{{ $thumbnailUrl }}"
+                                    alt="{{ $project->title }}"
+                                    class="absolute inset-0 w-full h-full object-cover"
+                                    loading="lazy"
+                                />
+                                
+                                {{-- YouTube Player Container --}}
+                                <div 
+                                    x-show="inView"
+                                    :id="playerId"
+                                    class="absolute inset-0 w-full h-full"
+                                ></div>
+                                
+                                {{-- Control Buttons --}}
+                                <div class="absolute bottom-4 right-4 flex items-center gap-2 z-20">
+                                    {{-- Play/Pause Button --}}
+                                    <button 
+                                        x-show="inView"
+                                        @click.stop="togglePlay()"
+                                        class="bg-black/70 hover:bg-black/90 text-white rounded-full p-2.5 transition-all transform hover:scale-110 backdrop-blur-sm"
+                                        :title="isPaused ? 'Play' : 'Pause'"
+                                    >
+                                        {{-- Play Icon --}}
+                                        <svg x-show="isPaused" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                        {{-- Pause Icon --}}
+                                        <svg x-show="!isPaused" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    {{-- Mute/Unmute Button --}}
+                                    <button 
+                                        x-show="inView"
+                                        @click.stop="toggleMute()"
+                                        class="bg-black/70 hover:bg-black/90 text-white rounded-full p-2.5 transition-all transform hover:scale-110 backdrop-blur-sm"
+                                        :title="isMuted ? 'Unmute' : 'Mute'"
+                                    >
+                                        {{-- Muted Icon --}}
+                                        <svg x-show="isMuted" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                                        </svg>
+                                        {{-- Unmuted Icon --}}
+                                        <svg x-show="!isMuted" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    {{-- Fullscreen Button --}}
+                                    <button 
+                                        @click.stop="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: 'youtube' })"
+                                        class="bg-black/70 hover:bg-black/90 text-white rounded-full p-2.5 transition-all transform hover:scale-110 backdrop-blur-sm"
+                                        title="Fullscreen"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                {{-- Gradient overlay at bottom for button visibility --}}
+                                <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+                            </div>
+                        {{-- Regular Video --}}
+                        @elseif($mediaType === 'video')
+                            <div 
+                                class="relative w-full aspect-video rounded-3xl overflow-hidden cursor-pointer group"
+                                @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })"
+                            >
+                                <video 
+                                    src="{{ $mediaUrl }}"
+                                    poster="{{ $thumbnailUrl }}"
+                                    class="w-full h-full object-cover"
+                                    muted
+                                    loop
+                                    playsinline
+                                    onmouseenter="this.play()"
+                                    onmouseleave="this.pause()"
+                                ></video>
+                                {{-- Hover Overlay --}}
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
+                            </div>
+                        {{-- Image --}}
+                        @else
+                            <div 
+                                class="relative w-full aspect-video rounded-3xl overflow-hidden cursor-pointer group"
+                                @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })"
+                            >
+                                <img 
+                                    src="{{ $mediaUrl }}"
+                                    alt="{{ $project->title }}"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    loading="lazy"
+                                />
+                                {{-- Hover Overlay --}}
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
+                            </div>
+                        @endif
+                    @endif
+                @endforeach
             </div>
         </div>
     </section>

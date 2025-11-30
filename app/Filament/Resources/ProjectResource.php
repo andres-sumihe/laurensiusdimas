@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
+use App\Filament\Forms\Components\MediaLayoutPicker;
 use App\Models\Project;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -85,8 +86,6 @@ class ProjectResource extends Resource
                                 'three_three' => 'Three-Three (6-Up)',
                                 'four_one' => 'Four-One (5-Up)',
                                 'four_two' => 'Four-Two (6-Up)',
-                                // Removed: 'landscape' => 'Landscape (Corporate)'
-                                // Removed: 'portrait' => 'Portrait (Corporate)'
                             ])
                             ->default('three_two')
                             ->required(fn (callable $get) => $get('section') !== 'corporate')
@@ -106,15 +105,25 @@ class ProjectResource extends Resource
                     ])
                     ->columns(2),
 
+                // Visual Media Picker for Curated and Older projects (uses project_media table via gridMedia relationship)
                 Forms\Components\Section::make('Project Media')
-                    ->description(fn (callable $get) => $get('section') === 'corporate' 
-                        ? 'Add images/videos for this corporate project. Each media can be landscape or portrait.'
-                        : 'Add images/videos for this project. Use slot numbers to control grid placement.')
+                    ->description('Add images/videos for this project. Use slot numbers to control grid placement based on the selected layout.')
+                    ->schema([
+                        MediaLayoutPicker::make('grid_media')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->visible(fn (callable $get) => in_array($get('section'), ['curated', 'older'])),
+
+                // Corporate Media Table for Corporate projects (uses project_media table)
+                Forms\Components\Section::make('Corporate Media')
+                    ->description('Add images/videos for this corporate project. Each media can be landscape or portrait layout.')
                     ->schema([
                         Forms\Components\View::make('filament.forms.components.corporate-media-table')
                             ->columnSpanFull(),
                     ])
-                    ->collapsible(),
+                    ->collapsible()
+                    ->visible(fn (callable $get) => $get('section') === 'corporate'),
 
                 Forms\Components\Section::make('SEO Settings')
                     ->schema([
@@ -128,6 +137,8 @@ class ProjectResource extends Resource
                         
                         Forms\Components\FileUpload::make('og_image')
                             ->label('Social Share Image')
+                            ->disk('public')
+                            ->visibility('public')
                             ->directory('projects/og-images')
                             ->image()
                             ->imageEditor(),

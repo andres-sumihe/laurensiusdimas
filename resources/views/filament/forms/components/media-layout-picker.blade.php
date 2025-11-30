@@ -19,6 +19,10 @@
             uploading: false,
             uploadProgress: 0,
             
+            // Drag and drop state
+            draggedIndex: null,
+            dragOverIndex: null,
+            
             init() {
                 // Listen for media-uploaded event from Livewire 3
                 this.$wire.$on('media-uploaded', (data) => {
@@ -32,6 +36,8 @@
             },
             
             openSlot(index) {
+                // Don't open if we're in the middle of a drag
+                if (this.draggedIndex !== null) return;
                 this.activeSlot = index;
                 document.body.style.overflow = 'hidden';
             },
@@ -116,6 +122,81 @@
                         this.uploadProgress = event.detail.progress;
                     }
                 );
+            },
+            
+            // Drag and drop methods
+            handleDragStart(index, event) {
+                // Only allow dragging items that have media
+                if (!this.hasMedia(index)) {
+                    event.preventDefault();
+                    return;
+                }
+                this.draggedIndex = index;
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', index);
+                // Add slight delay to allow drag image to form
+                setTimeout(() => {
+                    event.target.style.opacity = '0.5';
+                }, 0);
+            },
+            
+            handleDragEnd(event) {
+                event.target.style.opacity = '1';
+                this.draggedIndex = null;
+                this.dragOverIndex = null;
+            },
+            
+            handleDragOver(index, event) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                if (this.draggedIndex !== null && this.draggedIndex !== index) {
+                    this.dragOverIndex = index;
+                }
+            },
+            
+            handleDragLeave(index, event) {
+                // Only clear if we're actually leaving the element
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                    if (this.dragOverIndex === index) {
+                        this.dragOverIndex = null;
+                    }
+                }
+            },
+            
+            handleDrop(index, event) {
+                event.preventDefault();
+                
+                if (this.draggedIndex === null || this.draggedIndex === index) {
+                    this.dragOverIndex = null;
+                    return;
+                }
+                
+                // Swap the media items
+                this.swapMedia(this.draggedIndex, index);
+                
+                this.draggedIndex = null;
+                this.dragOverIndex = null;
+            },
+            
+            swapMedia(fromIndex, toIndex) {
+                // Ensure both indices have objects
+                if (!this.mediaItems[fromIndex]) {
+                    this.mediaItems[fromIndex] = { type: 'image', url: null, thumbnailUrl: null };
+                }
+                if (!this.mediaItems[toIndex]) {
+                    this.mediaItems[toIndex] = { type: 'image', url: null, thumbnailUrl: null };
+                }
+                
+                // Swap the items
+                const temp = { ...this.mediaItems[fromIndex] };
+                this.mediaItems[fromIndex] = { ...this.mediaItems[toIndex] };
+                this.mediaItems[toIndex] = temp;
+                
+                // Clear IDs since they're moving to new slot positions
+                delete this.mediaItems[fromIndex].id;
+                delete this.mediaItems[toIndex].id;
+                
+                this.updateState();
             }
         }"
         class="space-y-4"
@@ -159,6 +240,16 @@
                     style="width: calc({{ ($slot['cols'] / 12) * 100 }}% - 3px); aspect-ratio: 16/9; cursor: pointer;"
                     @click="openSlot({{ $index }})"
                     class="group relative"
+                    :class="{
+                        'ring-2 ring-primary-500 ring-offset-2 ring-offset-gray-900': dragOverIndex === {{ $index }},
+                        'opacity-50': draggedIndex === {{ $index }}
+                    }"
+                    draggable="true"
+                    @dragstart="handleDragStart({{ $index }}, $event)"
+                    @dragend="handleDragEnd($event)"
+                    @dragover="handleDragOver({{ $index }}, $event)"
+                    @dragleave="handleDragLeave({{ $index }}, $event)"
+                    @drop="handleDrop({{ $index }}, $event)"
                 >
                     {{-- Empty State --}}
                     <div 
@@ -211,6 +302,13 @@
         {{-- Progress indicator --}}
         <div style="font-size: 13px; color: #9CA3AF; text-align: center;">
             <span x-text="getFilledCount()"></span> / <span x-text="slotCount"></span> media slots filled
+            <span style="margin-left: 12px; color: #6B7280;">•</span>
+            <span style="margin-left: 12px; color: #6B7280;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 4px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                </svg>
+                Drag to reorder
+            </span>
         </div>
 
         {{-- Modal for editing slot --}}

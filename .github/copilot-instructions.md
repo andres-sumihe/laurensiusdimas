@@ -1,12 +1,12 @@
 # Copilot Instructions — Laurensius Dimas Portfolio
 
 ## Architecture Overview
-This is a **Laravel 12 + FilamentPHP v3** portfolio/CMS monolith using the TALL stack (Tailwind, Alpine.js, Livewire, Laravel). The public site is a single-page Livewire component; the admin panel is entirely Filament-based at `/admin`.
+This is a **Laravel 12 + FilamentPHP v3** portfolio/CMS monolith using the TALL stack (Tailwind CSS v4, Alpine.js, Livewire 3, Laravel). The public site is a single-page Livewire component; the admin panel is entirely Filament-based at `/admin`.
 
 ### Key Data Flow
-- **Public Frontend**: `App\Livewire\Home` renders all content via `SiteSetting::current()`, `Project`, and `Client` models
+- **Public Frontend**: `App\Livewire\Home` renders all content via `SiteSetting::current()`, `Project`, `ProjectMedia`, and `Client` models
 - **Admin Panel**: Filament Resources (`ProjectResource`, `ClientResource`) + custom Page (`ManageSiteSettings`)
-- **Media Storage**: Local filesystem via `storage/app/public`, accessed with `Storage::url()`
+- **Media Storage**: Local filesystem via `public` disk, accessed with `Storage::url()`
 
 ## Models & Patterns
 
@@ -17,14 +17,39 @@ $settings = SiteSetting::current();
 $settings->update(['hero_headline' => 'New Title']);
 ```
 
-### Media Items (JSON Column)
-Projects store media as JSON array in `media_items`. Structure:
+### Unified Project Media (ProjectMedia Model)
+Projects use a unified `project_media` table instead of JSON columns. Each media item has:
+- `project_id` — Foreign key to project
+- `type` — `image` or `video`
+- `url` — File path (local) or full URL (external)
+- `thumbnail_url` — Optional thumbnail for videos
+- `layout` — `landscape` or `portrait` (for corporate projects)
+- `sort_order` — Display order
+
+Access via relationship: `$project->projectMedia` or `$project->corporateMedia`
+
+### Automatic File Cleanup (HasFileUploads Trait)
+Models with file uploads use `App\Traits\HasFileUploads` for automatic cleanup:
+- Old files are deleted when replaced during update
+- All files are deleted when record is deleted
+- External URLs (http/https) are skipped
+
+Models using this trait: `Client`, `SiteSetting`, `ProjectMedia`, `Project`
+
+Implement in model:
 ```php
-[
-    ['type' => 'image|video', 'url' => 'path/to/file.jpg', 'thumbnailUrl' => 'path/to/thumb.jpg']
-]
+use App\Traits\HasFileUploads;
+
+class MyModel extends Model
+{
+    use HasFileUploads;
+    
+    public function getFileUploadFields(): array
+    {
+        return ['logo_url', 'image_url']; // fields containing file paths
+    }
+}
 ```
-Handle URL resolution in views: check `str_starts_with($url, 'http')` before `Storage::url()`.
 
 ### Project Layouts
 Layout types control grid rendering in `home.blade.php`:
@@ -40,8 +65,8 @@ Layout types control grid rendering in `home.blade.php`:
 composer dev
 
 # Frontend build
-npm run dev   # development
-npm run build # production
+npm run dev   # development with HMR
+npm run build # production build (MUST run before deploy)
 ```
 
 ## Filament Admin Conventions
@@ -51,8 +76,8 @@ npm run build # production
 - `app/Filament/Pages/` — Custom pages (ManageSiteSettings)
 
 ### Form Patterns Used
-- `Forms\Components\Repeater` for JSON arrays (media_items, social_links)
-- `Forms\Components\FileUpload` with `->directory()` for organized storage
+- `Forms\Components\Repeater` for JSON arrays (social_links)
+- `Forms\Components\FileUpload` with `->disk('public')->visibility('public')` — **REQUIRED for production**
 - `Forms\Components\Select::make('layout')` with predefined options
 - `->live(onBlur: true)` + `afterStateUpdated` for auto-slug generation
 
@@ -69,14 +94,86 @@ npm run build # production
 ## Database Conventions
 
 - Migrations use `is_visible` (boolean) + `sort_order` (integer) for content ordering
-- Store structured data as JSON columns (`media_items`, `social_links`)
+- Store structured data as JSON columns (`social_links`) or related tables (`project_media`)
 - Use snake_case for column names; Eloquent handles casting via `$casts`
 
-## Deployment Notes
+---
 
-Target: **Hostinger Shared Hosting** (PHP 8.3, MySQL 5.7)
-- Media stored locally in `storage/app/public` (symlinked to `public/storage`)
-- No queue workers in production; use sync driver
+## 🚨 Deployment — Hostinger Shared Hosting
+
+### Environment Differences
+
+| Feature | Local Development | Production (Hostinger) |
+|---------|-------------------|------------------------|
+| Storage symlink | `php artisan storage:link` works | ❌ `symlink()` disabled |
+| Storage path | `storage/app/public/` | `public/storage/` (direct) |
+| npm/node | Available | ❌ Not available |
+| SSH | N/A | ❌ Not available |
+| Queue driver | `database` | `sync` (no workers) |
+
+### Storage Configuration
+
+**Local (.env):**
+```env
+# No FILESYSTEM_PUBLIC_ROOT needed — uses default storage/app/public
+```
+
+**Production (.env):**
+```env
+FILESYSTEM_PUBLIC_ROOT=/home/u501912770/domains/laurensiusdimas.com/public_html/public/storage
+```
+
+This bypasses the symlink requirement by writing directly to `public/storage/`.
+
+### FileUpload Components — CRITICAL
+All Filament `FileUpload` components MUST specify disk and visibility:
+```php
+Forms\Components\FileUpload::make('logo_url')
+    ->disk('public')           // ← REQUIRED
+    ->visibility('public')     // ← REQUIRED  
+    ->directory('clients')
+```
+Without these, files upload to private storage and won't be accessible.
+
+### First-Time Production Setup
+A one-time setup script creates necessary folders:
+1. Upload `public/setup-storage.php` via FTP
+2. Visit: `https://yourdomain.com/setup-storage.php?token=ld-setup-2025-delete-after-use`
+3. **Delete the script immediately after**
+
+### Deployment Workflow
+
+1. **Build assets locally** (Hostinger has no npm):
+   ```bash
+   npm run build
+   ```
+
+2. **Commit built assets** (`public/build/` is NOT gitignored)
+
+3. **Push to GitHub** then pull on server via FTP or Git
+
+4. **Files to upload via FTP only** (not Git for security):
+   - `.htaccess` (root)
+   - `public/.htaccess`
+   - `.env` (production version)
+
+### Production .env Required Variables
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://laurensiusdimas.com
+
+DB_CONNECTION=mysql
+DB_HOST=your-host
+DB_DATABASE=your-db
+DB_USERNAME=your-user
+DB_PASSWORD=your-password
+
+FILESYSTEM_PUBLIC_ROOT=/home/u501912770/domains/laurensiusdimas.com/public_html/public/storage
+QUEUE_CONNECTION=sync
+```
+
+---
 
 ## Video Performance Pattern
 
@@ -89,3 +186,36 @@ When adding video elements, follow the lazy-loading pattern in `home.blade.php`:
 - Always include `poster` attribute for video thumbnails
 - Use `playsinline` for mobile compatibility
 - Consider Intersection Observer for viewport-based loading on pages with many videos
+
+## CSS Marquee Pattern (Infinite Carousel)
+
+For infinite scrolling carousels (clients section), use the responsive CSS-only technique:
+```css
+.marquee {
+    --gap: 1.5rem;
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    gap: var(--gap);
+}
+.marquee__content {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-around;
+    min-width: 100%;
+    gap: var(--gap);
+    animation: marquee-scroll 20s linear infinite;
+}
+@keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
+}
+```
+Key: The `calc(-100% - var(--gap))` ensures seamless looping with dynamic content widths.
+
+## Security Notes
+
+- **Never commit `.env` files** — they're in `.gitignore`
+- **Never commit credentials** — `docs/*` is gitignored
+- `.htaccess` files uploaded via FTP only (not in repo)
+- Use `git filter-repo` if secrets are accidentally committed

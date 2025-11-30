@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProjectResource\Pages;
 
 use App\Filament\Resources\ProjectResource;
+use App\Models\ProjectMedia;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Livewire\WithFileUploads;
@@ -39,6 +40,37 @@ class CreateProject extends CreateRecord
     {
         if ($path && !str_starts_with($path, 'http') && Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
+        }
+    }
+
+    /**
+     * Save grid media to project_media table after record is created
+     */
+    protected function afterCreate(): void
+    {
+        $section = $this->data['section'] ?? 'curated';
+        
+        // Only process grid media for curated/older sections
+        if (!in_array($section, ['curated', 'older'])) {
+            return;
+        }
+
+        $mediaItems = $this->data['grid_media'] ?? [];
+
+        foreach ($mediaItems as $index => $item) {
+            if (empty($item['url'])) {
+                continue;
+            }
+
+            ProjectMedia::create([
+                'project_id' => $this->record->id,
+                'type' => $item['type'] ?? 'image',
+                'url' => $item['url'],
+                'thumbnail_url' => $item['thumbnailUrl'] ?? null,
+                'slot_index' => $index,
+                'sort_order' => $index,
+                'layout' => null, // Grid media doesn't use layout field
+            ]);
         }
     }
 }

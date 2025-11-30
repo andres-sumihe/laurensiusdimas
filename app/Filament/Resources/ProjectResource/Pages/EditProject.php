@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProjectResource\Pages;
 
 use App\Filament\Resources\ProjectResource;
+use App\Models\ProjectMedia;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Livewire\WithFileUploads;
@@ -50,24 +51,68 @@ class EditProject extends EditRecord
     }
 
     /**
-     * Clean up orphaned media files when the record is saved
+     * Save grid media to project_media table after record is saved
      */
-    protected function mutateFormDataBeforeSave(array $data): array
+    protected function afterSave(): void
     {
-        // Get old media items
-        $oldMediaItems = $this->record->media_items ?? [];
-        $newMediaItems = $data['media_items'] ?? [];
-
-        // Find removed media items and delete them
-        $oldUrls = collect($oldMediaItems)->pluck('url')->filter()->toArray();
-        $newUrls = collect($newMediaItems)->pluck('url')->filter()->toArray();
+        $section = $this->data['section'] ?? 'curated';
         
-        $removedUrls = array_diff($oldUrls, $newUrls);
-        
-        foreach ($removedUrls as $url) {
-            $this->deleteMediaFile($url);
+        // Only process grid media for curated/older sections
+        if (!in_array($section, ['curated', 'older'])) {
+            return;
         }
 
-        return $data;
+        $mediaItems = $this->data['grid_media'] ?? [];
+        
+        // Get existing grid media IDs for this project
+        $existingMedia = $this->record->gridMedia;
+        $existingIds = $existingMedia->pluck('id')->toArray();
+        $processedIds = [];
+
+        foreach ($mediaItems as $index => $item) {
+            if (empty($item['url'])) {
+                continue;
+            }
+
+            $mediaData = [
+                'project_id' => $this->record->id,
+                'type' => $item['type'] ?? 'image',
+                'url' => $item['url'],
+                'thumbnail_url' => $item['thumbnailUrl'] ?? null,
+                'slot_index' => $index,
+                'sort_order' => $index,
+                'layout' => null, // Grid media doesn't use layout field
+            ];
+
+            if (!empty($item['id'])) {
+                // Update existing record
+                $media = ProjectMedia::find($item['id']);
+                if ($media) {
+                    // Check if URL changed to delete old file
+                    if ($media->url !== $item['url']) {
+                        $this->deleteMediaFile($media->url);
+                    }
+                    $media->update($mediaData);
+                    $processedIds[] = $media->id;
+                }
+            } else {
+                // Create new record
+                $media = ProjectMedia::create($mediaData);
+                $processedIds[] = $media->id;
+            }
+        }
+
+        // Delete removed media records and their files
+        $removedIds = array_diff($existingIds, $processedIds);
+        foreach ($removedIds as $id) {
+            $media = ProjectMedia::find($id);
+            if ($media) {
+                $this->deleteMediaFile($media->url);
+                if ($media->thumbnail_url) {
+                    $this->deleteMediaFile($media->thumbnail_url);
+                }
+                $media->delete();
+            }
+        }
     }
 }

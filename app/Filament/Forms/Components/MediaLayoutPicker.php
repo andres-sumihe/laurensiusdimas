@@ -4,6 +4,7 @@ namespace App\Filament\Forms\Components;
 
 use Filament\Forms\Components\Field;
 use Illuminate\Validation\ValidationException;
+use App\Models\ProjectMedia;
 
 class MediaLayoutPicker extends Field
 {
@@ -15,10 +16,35 @@ class MediaLayoutPicker extends Field
 
         $this->default([]);
 
-        // Add validation using Filament's afterStateUpdated or dehydration
-        $this->dehydrateStateUsing(function ($state) {
-            return $state;
+        // Load data from gridMedia relationship when record exists
+        $this->afterStateHydrated(function (MediaLayoutPicker $component, $state, $record) {
+            if ($record && $record->exists) {
+                // Load from gridMedia relationship
+                $mediaItems = $record->gridMedia->map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'type' => $media->type ?? 'image',
+                        'url' => $media->url,
+                        'thumbnailUrl' => $media->thumbnail_url,
+                        'slot_index' => $media->slot_index,
+                    ];
+                })->keyBy('slot_index')->toArray();
+
+                // Reindex to 0-based array for the frontend
+                $reindexed = [];
+                $layout = $record->layout ?? 'three_two';
+                $slotCount = $this->getSlotCountForLayout($layout);
+                
+                for ($i = 0; $i < $slotCount; $i++) {
+                    $reindexed[$i] = $mediaItems[$i] ?? ['type' => 'image', 'url' => null, 'thumbnailUrl' => null];
+                }
+
+                $component->state($reindexed);
+            }
         });
+
+        // This field doesn't directly save to database - handled by page mutators
+        $this->dehydrated(false);
 
         // Custom validation via rule
         $this->rule(function () {

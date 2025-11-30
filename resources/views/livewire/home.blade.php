@@ -459,27 +459,46 @@
                 <div class="absolute right-0 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-[120px] bg-gradient-to-l from-black to-transparent"></div>
                 
                 {{-- Carousel container with animation --}}
+                @php
+                    $clientsList = $clients->filter(fn($c) => !empty($c->logo_url));
+                    $clientCount = $clientsList->count();
+                    $animationDuration = max(20, $clientCount * 4);
+                @endphp
+                
                 <style>
-                    @keyframes marquee-clients {
-                        0% { transform: translateX(0); }
-                        100% { transform: translateX(-50%); }
-                    }
-                    .marquee-clients-track {
+                    .marquee-clients {
+                        --gap: 1.5rem;
                         display: flex;
-                        width: max-content;
-                        animation: marquee-clients 15s linear infinite;
+                        overflow: hidden;
+                        user-select: none;
+                        gap: var(--gap);
                     }
-                    .marquee-clients-track:hover {
+                    @media (min-width: 640px) {
+                        .marquee-clients { --gap: 2rem; }
+                    }
+                    @media (min-width: 768px) {
+                        .marquee-clients { --gap: 3rem; }
+                    }
+                    .marquee-clients__content {
+                        flex-shrink: 0;
+                        display: flex;
+                        justify-content: space-around;
+                        min-width: 100%;
+                        gap: var(--gap);
+                        animation: marquee-clients-scroll {{ $animationDuration }}s linear infinite;
+                    }
+                    .marquee-clients:hover .marquee-clients__content {
                         animation-play-state: paused;
+                    }
+                    @keyframes marquee-clients-scroll {
+                        from { transform: translateX(0); }
+                        to { transform: translateX(calc(-100% - var(--gap))); }
                     }
                 </style>
                 
-                <div class="marquee-clients-track">
-                    @php
-                        $clientsList = $clients->filter(fn($c) => !empty($c->logo_url));
-                    @endphp
+                <div class="marquee-clients">
                     {{-- First set --}}
-                    <div class="flex gap-6 sm:gap-8 md:gap-12 shrink-0">
+                    <div class="marquee-clients__content">
                         @foreach($clientsList as $client)
                             @php
                                 $clientLogoUrl = $client->logo_url 
@@ -489,7 +508,7 @@
                                     : null;
                             @endphp
                             @if($clientLogoUrl)
-                                <div class="shrink-0 flex items-center justify-center min-w-[120px] sm:min-w-[150px] md:min-w-[180px] h-[60px] sm:h-[80px] md:h-[100px]">
+                                <div class="shrink-0 flex items-center justify-center h-[60px] sm:h-20 md:h-[100px]">
                                     <img 
                                         src="{{ $clientLogoUrl }}" 
                                         alt="{{ $client->name }}" 
@@ -501,7 +520,7 @@
                         @endforeach
                     </div>
                     {{-- Duplicate set for seamless loop --}}
-                    <div class="flex gap-6 sm:gap-8 md:gap-12 shrink-0 ml-6 sm:ml-8 md:ml-12">
+                    <div class="marquee-clients__content" aria-hidden="true">
                         @foreach($clientsList as $client)
                             @php
                                 $clientLogoUrl = $client->logo_url 
@@ -511,7 +530,7 @@
                                     : null;
                             @endphp
                             @if($clientLogoUrl)
-                                <div class="shrink-0 flex items-center justify-center min-w-[120px] sm:min-w-[150px] md:min-w-[180px] h-[60px] sm:h-[80px] md:h-[100px]">
+                                <div class="shrink-0 flex items-center justify-center h-[60px] sm:h-20 md:h-[100px]">
                                     <img 
                                         src="{{ $clientLogoUrl }}" 
                                         alt="{{ $client->name }}" 

@@ -42,13 +42,15 @@
 
 <div class="min-h-screen max-w-[1440px] mx-auto bg-black text-white">
     {{-- ========================================
-         HERO SECTION - Animated Blob Background
+         HERO SECTION - Full Width Background (breaks out of container)
     ========================================= --}}
-    <section class="relative flex min-h-screen items-center justify-center overflow-hidden">
+    <section class="relative flex min-h-screen items-center justify-center overflow-hidden 
+                    -mx-[calc((100vw-100%)/2)] w-[100vw] max-w-[100vw]">
         <div class="absolute inset-0 bg-black"></div>
 
-        {{-- Header Logo - Top Left (visible on all devices, smaller on mobile) --}}
-        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20">
+        {{-- Header Logo - Top Left (positioned relative to 1440px container) --}}
+        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20
+                    lg:left-[calc((100vw-1440px)/2+48px)]">
             <a href="#" class="block">
                 <img 
                     src="{{ asset('logo.svg') }}" 
@@ -58,26 +60,43 @@
             </a>
         </div>
 
-        <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[90vw] sm:max-w-none">
+        {{-- Hero Background Media - Full viewport coverage --}}
+        <div class="pointer-events-none absolute inset-0 w-full h-full">
             @php
                 $isVideo = preg_match('/\.(mp4|webm|mov)$/i', $heroBlobUrl);
-                $isImage = preg_match('/\.(gif|png|jpe?g|webp|svg)$/i', $heroBlobUrl);
+                $isGif = preg_match('/\.gif$/i', $heroBlobUrl);
+                $isImage = preg_match('/\.(png|jpe?g|webp|svg)$/i', $heroBlobUrl);
+                $isFullscreen = $isVideo || $isImage; // Fullscreen for video and static images, NOT for GIF
             @endphp
             @if($isVideo)
+                {{-- Fullscreen video background --}}
                 <video
-                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    class="w-full h-full object-cover opacity-80"
                     autoplay muted loop playsinline
                 >
                     <source src="{{ $heroBlobUrl }}" type="video/mp4">
                 </video>
+            @elseif($isGif)
+                {{-- Centered blob style for GIF --}}
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <img
+                        src="{{ $heroBlobUrl }}"
+                        alt="Animated blob"
+                        class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    >
+                </div>
             @else
+                {{-- Fullscreen image background for static images --}}
                 <img
                     src="{{ $heroBlobUrl }}"
-                    alt="Animated blob"
-                    class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                    alt="Hero background"
+                    class="w-full h-full object-cover opacity-80"
                 >
             @endif
-            <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/30"></div>
+            {{-- Gradient overlays for text readability and section transition --}}
+            <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent"></div>
+            {{-- Bottom fade to black - seamless transition to next section --}}
+            <div class="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-b from-transparent to-black"></div>
         </div>
 
         <div class="relative z-10 text-left mx-4">

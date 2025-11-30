@@ -36,3 +36,6 @@ Thumbs.db
 .htaccess
 public/.htaccess
 docs/*
+
+# One-time setup script (delete after use)
+public/setup-storage.php

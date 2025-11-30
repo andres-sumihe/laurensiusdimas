@@ -252,6 +252,21 @@
                     $client = $clientProjects->first()->client ?? null;
                     $clientName = $client->name ?? 'Unknown Client';
                     
+                    // Helper function to extract YouTube video ID
+                    $extractYouTubeId = function($url) {
+                        if (!$url) return null;
+                        $patterns = [
+                            '/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/',
+                            '/^([a-zA-Z0-9_-]{11})$/'
+                        ];
+                        foreach ($patterns as $pattern) {
+                            if (preg_match($pattern, $url, $matches)) {
+                                return $matches[1];
+                            }
+                        }
+                        return null;
+                    };
+                    
                     // Collect all corporate media from all projects for this client
                     $allMedia = $clientProjects->flatMap(fn($p) => $p->corporateMedia ?? collect());
                     $landscapeMedia = $allMedia->filter(fn($m) => $m->layout === 'landscape')->sortBy('sort_order');
@@ -290,15 +305,34 @@
                                             @php
                                                 $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
                                                 $mediaType = $media->type ?? 'image';
+                                                $thumbnailUrl = $media->thumbnail_url ? (str_starts_with($media->thumbnail_url, 'http') ? $media->thumbnail_url : Storage::url($media->thumbnail_url)) : null;
+                                                $youtubeId = null;
+                                                
+                                                // Check for YouTube
+                                                if ($mediaType === 'youtube' || str_contains($media->url ?? '', 'youtube') || str_contains($media->url ?? '', 'youtu.be')) {
+                                                    $youtubeId = $extractYouTubeId($media->url);
+                                                    if ($youtubeId) {
+                                                        $mediaType = 'youtube';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                    }
+                                                }
                                             @endphp
-                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]"
-                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
-                                                @if($mediaUrl)
-                                                    @if($mediaType === 'video')
-                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
-                                                    @else
-                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                                    @endif
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
+                                                @if($mediaType === 'youtube' && $youtubeId)
+                                                    @include('livewire.partials.youtube-inline-player', [
+                                                        'youtubeId' => $youtubeId,
+                                                        'thumbnailUrl' => $thumbnailUrl,
+                                                        'uniqueId' => 'corp-land-' . $media->id,
+                                                        'showControls' => true,
+                                                    ])
+                                                @elseif($mediaUrl)
+                                                    <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
+                                                        @if($mediaType === 'video')
+                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                        @else
+                                                            <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -309,15 +343,34 @@
                                             @php
                                                 $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
                                                 $mediaType = $media->type ?? 'image';
+                                                $thumbnailUrl = $media->thumbnail_url ? (str_starts_with($media->thumbnail_url, 'http') ? $media->thumbnail_url : Storage::url($media->thumbnail_url)) : null;
+                                                $youtubeId = null;
+                                                
+                                                // Check for YouTube
+                                                if ($mediaType === 'youtube' || str_contains($media->url ?? '', 'youtube') || str_contains($media->url ?? '', 'youtu.be')) {
+                                                    $youtubeId = $extractYouTubeId($media->url);
+                                                    if ($youtubeId) {
+                                                        $mediaType = 'youtube';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                    }
+                                                }
                                             @endphp
-                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]"
-                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
-                                                @if($mediaUrl)
-                                                    @if($mediaType === 'video')
-                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
-                                                    @else
-                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                                    @endif
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden w-[280px] h-[143px] sm:w-[340px] sm:h-[174px] md:w-[420px] md:h-[215px]">
+                                                @if($mediaType === 'youtube' && $youtubeId)
+                                                    @include('livewire.partials.youtube-inline-player', [
+                                                        'youtubeId' => $youtubeId,
+                                                        'thumbnailUrl' => $thumbnailUrl,
+                                                        'uniqueId' => 'corp-land-dup-' . $media->id,
+                                                        'showControls' => true,
+                                                    ])
+                                                @elseif($mediaUrl)
+                                                    <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
+                                                        @if($mediaType === 'video')
+                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                        @else
+                                                            <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -351,15 +404,34 @@
                                             @php
                                                 $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
                                                 $mediaType = $media->type ?? 'image';
+                                                $thumbnailUrl = $media->thumbnail_url ? (str_starts_with($media->thumbnail_url, 'http') ? $media->thumbnail_url : Storage::url($media->thumbnail_url)) : null;
+                                                $youtubeId = null;
+                                                
+                                                // Check for YouTube
+                                                if ($mediaType === 'youtube' || str_contains($media->url ?? '', 'youtube') || str_contains($media->url ?? '', 'youtu.be')) {
+                                                    $youtubeId = $extractYouTubeId($media->url);
+                                                    if ($youtubeId) {
+                                                        $mediaType = 'youtube';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                    }
+                                                }
                                             @endphp
-                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]"
-                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
-                                                @if($mediaUrl)
-                                                    @if($mediaType === 'video')
-                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
-                                                    @else
-                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                                    @endif
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
+                                                @if($mediaType === 'youtube' && $youtubeId)
+                                                    @include('livewire.partials.youtube-inline-player', [
+                                                        'youtubeId' => $youtubeId,
+                                                        'thumbnailUrl' => $thumbnailUrl,
+                                                        'uniqueId' => 'corp-port-' . $media->id,
+                                                        'showControls' => true,
+                                                    ])
+                                                @elseif($mediaUrl)
+                                                    <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
+                                                        @if($mediaType === 'video')
+                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                        @else
+                                                            <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -370,15 +442,34 @@
                                             @php
                                                 $mediaUrl = $media->url ? (str_starts_with($media->url, 'http') ? $media->url : Storage::url($media->url)) : null;
                                                 $mediaType = $media->type ?? 'image';
+                                                $thumbnailUrl = $media->thumbnail_url ? (str_starts_with($media->thumbnail_url, 'http') ? $media->thumbnail_url : Storage::url($media->thumbnail_url)) : null;
+                                                $youtubeId = null;
+                                                
+                                                // Check for YouTube
+                                                if ($mediaType === 'youtube' || str_contains($media->url ?? '', 'youtube') || str_contains($media->url ?? '', 'youtu.be')) {
+                                                    $youtubeId = $extractYouTubeId($media->url);
+                                                    if ($youtubeId) {
+                                                        $mediaType = 'youtube';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                    }
+                                                }
                                             @endphp
-                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden cursor-pointer w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]"
-                                                 @if($mediaUrl) @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })" @endif>
-                                                @if($mediaUrl)
-                                                    @if($mediaType === 'video')
-                                                        <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video>
-                                                    @else
-                                                        <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-                                                    @endif
+                                            <div class="shrink-0 bg-gray-300 relative overflow-hidden w-[150px] h-[273px] sm:w-[180px] sm:h-[327px] md:w-[220px] md:h-[400px]">
+                                                @if($mediaType === 'youtube' && $youtubeId)
+                                                    @include('livewire.partials.youtube-inline-player', [
+                                                        'youtubeId' => $youtubeId,
+                                                        'thumbnailUrl' => $thumbnailUrl,
+                                                        'uniqueId' => 'corp-port-dup-' . $media->id,
+                                                        'showControls' => true,
+                                                    ])
+                                                @elseif($mediaUrl)
+                                                    <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
+                                                        @if($mediaType === 'video')
+                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                        @else
+                                                            <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </div>
                                         @endforeach

@@ -64,9 +64,12 @@
                     const youtubeId = this.extractYouTubeId(value);
                     if (youtubeId) {
                         this.mediaItems[index].type = 'youtube';
-                        // Auto-set thumbnail from YouTube if not already set
-                        if (!this.mediaItems[index].thumbnailUrl) {
-                            this.mediaItems[index].thumbnailUrl = 'https://img.youtube.com/vi/' + youtubeId + '/maxresdefault.jpg';
+                        // Always update thumbnail when URL changes (use hqdefault as it always exists)
+                        this.mediaItems[index].thumbnailUrl = 'https://img.youtube.com/vi/' + youtubeId + '/hqdefault.jpg';
+                    } else {
+                        // Not a YouTube URL - clear thumbnail if type is not video
+                        if (this.mediaItems[index].type !== 'video') {
+                            this.mediaItems[index].thumbnailUrl = null;
                         }
                     }
                 }
@@ -104,14 +107,15 @@
                 return media?.type === 'youtube' || (media?.url && this.extractYouTubeId(media.url));
             },
             
-            // Get YouTube thumbnail
+            // Get YouTube thumbnail (use hqdefault as it always exists, maxresdefault may not)
             getYouTubeThumbnail(index) {
                 const media = this.mediaItems[index];
                 if (!media?.url) return null;
                 
                 const id = this.extractYouTubeId(media.url);
                 if (id) {
-                    return media.thumbnailUrl || 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
+                    // Prefer stored thumbnail, then hqdefault (always exists)
+                    return media.thumbnailUrl || 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
                 }
                 return null;
             },
@@ -328,11 +332,25 @@
                         x-show="hasMedia({{ $index }})"
                         style="width: 100%; height: 100%; border-radius: 8px; overflow: hidden; position: relative;"
                     >
-                        <img 
-                            x-bind:src="getPreviewUrl({{ $index }})"
-                            style="width: 100%; height: 100%; object-fit: cover;"
-                            onerror="this.style.display='none'"
-                        />
+                        {{-- Use template with key to force image recreation when URL changes --}}
+                        <template x-for="previewUrl in [getPreviewUrl({{ $index }})]" :key="previewUrl">
+                            <img 
+                                :src="previewUrl"
+                                style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;"
+                                x-on:error="
+                                    if (isYouTube({{ $index }})) {
+                                        const media = mediaItems[{{ $index }}];
+                                        const id = extractYouTubeId(media?.url);
+                                        if (id && !$el.dataset.triedFallback) {
+                                            $el.dataset.triedFallback = 'true';
+                                            $el.src = 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg';
+                                            return;
+                                        }
+                                    }
+                                    $el.style.display = 'none';
+                                "
+                            />
+                        </template>
                         <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0;" class="group-hover:opacity-100 transition-opacity">
                             <button 
                                 type="button"
@@ -353,12 +371,10 @@
                         </div>
                         <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
                             {{ $slot['label'] }}
-                            {{-- YouTube badge --}}
-                            <template x-if="isYouTube({{ $index }})">
-                                <svg style="width: 16px; height: 16px; color: #FF0000;" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                </svg>
-                            </template>
+                            {{-- YouTube badge - using x-show instead of template x-if to avoid Livewire Blade compiler conflict --}}
+                            <svg x-show="isYouTube({{ $index }})" x-cloak style="width: 16px; height: 16px; color: #FF0000;" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
@@ -430,7 +446,7 @@
                         </label>
                         <div class="relative mt-2">
                             <select 
-                                x-model="mediaItems[activeSlot] ? mediaItems[activeSlot].type : 'image'"
+                                :value="getMedia(activeSlot).type"
                                 @change="setMedia(activeSlot, 'type', $event.target.value)"
                                 class="fi-select-input block w-full border-none bg-white py-1.5 pe-8 ps-3 text-base text-gray-950 transition duration-75 focus:ring-2 focus:ring-primary-600 disabled:text-gray-500 disabled:[-webkit-text-fill-color:theme(colors.gray.500)] disabled:placeholder:[-webkit-text-fill-color:theme(colors.gray.400)] dark:bg-white/5 dark:text-white dark:focus:ring-primary-500 sm:text-sm sm:leading-6 [&_optgroup]:bg-white [&_optgroup]:dark:bg-gray-900 [&_option]:bg-white [&_option]:dark:bg-gray-900 rounded-lg shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20"
                                 style="appearance: none; padding-right: 2.5rem; background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E'); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
@@ -563,14 +579,17 @@
                             />
                             
                             {{-- YouTube Preview --}}
-                            <template x-if="getMedia(activeSlot).url && extractYouTubeId(getMedia(activeSlot).url)">
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                            {{-- YouTube Preview - using x-show for better reactivity when URL changes --}}
+                            <div x-show="getMedia(activeSlot).url && extractYouTubeId(getMedia(activeSlot).url)" x-cloak style="display: flex; flex-direction: column; gap: 12px;">
                                     <div style="position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; background: #1F2937;">
-                                        <img 
-                                            x-bind:src="getYouTubeThumbnail(activeSlot)"
-                                            style="width: 100%; height: 100%; object-fit: cover;"
-                                            onerror="this.style.display='none'"
-                                        />
+                                        {{-- Key forces image recreation when URL changes --}}
+                                        <template x-for="url in [getYouTubeThumbnail(activeSlot)]" :key="url">
+                                            <img 
+                                                x-bind:src="url"
+                                                style="width: 100%; height: 100%; object-fit: cover;"
+                                                x-on:error="$el.style.display = 'none'"
+                                            />
+                                        </template>
                                         {{-- YouTube Play Icon Overlay --}}
                                         <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
                                             <div style="width: 68px; height: 48px; background: rgba(255, 0, 0, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -602,17 +621,14 @@
                                         </button>
                                     </div>
                                 </div>
-                            </template>
                             
                             {{-- Invalid YouTube URL warning --}}
-                            <template x-if="getMedia(activeSlot).url && !extractYouTubeId(getMedia(activeSlot).url)">
-                                <div style="padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                            <div x-show="getMedia(activeSlot).url && !extractYouTubeId(getMedia(activeSlot).url)" x-cloak style="padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; display: flex; align-items: center; gap: 12px;">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; color: #F87171; flex-shrink: 0;">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                                     </svg>
                                     <p style="font-size: 13px; color: #F87171; margin: 0;">Invalid YouTube URL. Please enter a valid YouTube link.</p>
                                 </div>
-                            </template>
                         </div>
                     </div>
 

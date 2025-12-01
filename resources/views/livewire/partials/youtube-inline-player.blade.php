@@ -13,7 +13,7 @@
 --}}
 @php
     $uniqueId = $uniqueId ?? 'yt-' . uniqid();
-    $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+    $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
     $showControls = $showControls ?? true;
     $aspectRatio = $aspectRatio ?? 'aspect-video';
 @endphp

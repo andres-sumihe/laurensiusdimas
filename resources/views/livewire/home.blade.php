@@ -313,7 +313,7 @@
                                                     $youtubeId = $extractYouTubeId($media->url);
                                                     if ($youtubeId) {
                                                         $mediaType = 'youtube';
-                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
                                                     }
                                                 }
                                             @endphp
@@ -351,7 +351,7 @@
                                                     $youtubeId = $extractYouTubeId($media->url);
                                                     if ($youtubeId) {
                                                         $mediaType = 'youtube';
-                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
                                                     }
                                                 }
                                             @endphp
@@ -412,7 +412,7 @@
                                                     $youtubeId = $extractYouTubeId($media->url);
                                                     if ($youtubeId) {
                                                         $mediaType = 'youtube';
-                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
                                                     }
                                                 }
                                             @endphp
@@ -450,7 +450,7 @@
                                                     $youtubeId = $extractYouTubeId($media->url);
                                                     if ($youtubeId) {
                                                         $mediaType = 'youtube';
-                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                                                        $thumbnailUrl = $thumbnailUrl ?? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
                                                     }
                                                 }
                                             @endphp
@@ -524,7 +524,7 @@
                                 $youtubeId = $matches[1] ?? null;
                                 if ($youtubeId) {
                                     $mediaType = 'youtube';
-                                    $thumbnailUrl = $thumbnailUrl ?: "https://img.youtube.com/vi/{$youtubeId}/maxresdefault.jpg";
+                                    $thumbnailUrl = $thumbnailUrl ?: "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg";
                                 }
                             }
                             

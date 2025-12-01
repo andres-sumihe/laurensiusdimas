@@ -45,7 +45,7 @@
             
             // For YouTube, generate thumbnail if not provided
             if ($type === 'youtube' && $youtubeId && !$thumb) {
-                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
             }
             
             return [
@@ -70,7 +70,7 @@
             
             // For YouTube, generate thumbnail if not provided
             if ($type === 'youtube' && $youtubeId && !$thumb) {
-                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/maxresdefault.jpg';
+                $thumb = 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
             }
             
             return [

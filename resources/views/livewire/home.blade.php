@@ -44,24 +44,77 @@
     {{-- ========================================
          HERO SECTION - Full Width Background (breaks out of container)
     ========================================= --}}
-    <section class="relative flex min-h-screen items-center justify-center overflow-hidden 
-                    -mx-[calc((100vw-100%)/2)] w-[100vw] max-w-[100vw]">
-        <div class="absolute inset-0 bg-black"></div>
-
-        {{-- Header Logo - Top Left (positioned relative to 1440px container) --}}
-        <div class="reveal-hero absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20
-                    lg:left-[calc((100vw-1440px)/2+48px)]">
-            <a href="#" class="block">
-                <img 
-                    src="{{ asset('logo.svg') }}" 
-                    alt="LD Logo" 
-                    class="w-8 h-auto sm:w-10 md:w-12 lg:w-[54px] drop-shadow-lg"
-                >
-            </a>
+    <section 
+        x-data="{ 
+            heroLoaded: false,
+            logoReady: false,
+            blobFaded: false
+        }"
+        x-init="
+            $nextTick(() => {
+                const heroMedia = $el.querySelector('.hero-media-container');
+                const video = heroMedia?.querySelector('video');
+                const img = heroMedia?.querySelector('.hero-media-main');
+                
+                const markLoaded = () => { 
+                    if (!heroLoaded) {
+                        heroLoaded = true;
+                        // Fade blob and move logo simultaneously
+                        setTimeout(() => {
+                            blobFaded = true;
+                            logoReady = true;
+                        }, 500);
+                    }
+                };
+                
+                if (video) {
+                    if (video.readyState >= 3) {
+                        markLoaded();
+                    } else {
+                        video.addEventListener('canplay', markLoaded, { once: true });
+                        video.addEventListener('loadeddata', markLoaded, { once: true });
+                    }
+                } else if (img) {
+                    if (img.complete && img.naturalHeight > 0) {
+                        markLoaded();
+                    } else {
+                        img.addEventListener('load', markLoaded, { once: true });
+                    }
+                } else {
+                    setTimeout(markLoaded, 800);
+                }
+                
+                setTimeout(markLoaded, 4000);
+            });
+        "
+        class="relative flex min-h-screen items-center justify-center overflow-hidden 
+                    -mx-[calc((100vw-100%)/2)] w-[100vw] max-w-[100vw]"
+    >
+        {{-- Morphing Blob Loading Overlay --}}
+        <div 
+            class="hero-loader"
+            :class="{ 'loaded': blobFaded }"
+        >
+            <div class="morphing-blob"></div>
         </div>
 
+        <div class="absolute inset-0 bg-black"></div>
+
+        {{-- Single Logo Element - Starts centered, flies to corner --}}
+        <a 
+            href="#" 
+            class="hero-logo-container z-50"
+            :class="logoReady ? 'logo-in-corner' : 'logo-in-center'"
+        >
+            <img 
+                src="{{ asset('logo.svg') }}" 
+                alt="LD Logo" 
+                class="hero-logo drop-shadow-lg"
+            >
+        </a>
+
         {{-- Hero Background Media - Full viewport coverage --}}
-        <div class="pointer-events-none absolute inset-0 w-full h-full">
+        <div class="hero-media-container pointer-events-none absolute inset-0 w-full h-full">
             @php
                 $isVideo = preg_match('/\.(mp4|webm|mov)$/i', $heroBlobUrl);
                 $isGif = preg_match('/\.gif$/i', $heroBlobUrl);
@@ -82,7 +135,7 @@
                     <img
                         src="{{ $heroBlobUrl }}"
                         alt="Animated blob"
-                        class="max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
+                        class="hero-media-main max-h-[280px] sm:max-h-[380px] md:max-h-[450px] lg:max-h-[520px] w-auto mx-auto opacity-90 saturate-[1.15] brightness-[1.25] contrast-[1.05]"
                     >
                 </div>
             @else
@@ -90,7 +143,7 @@
                 <img
                     src="{{ $heroBlobUrl }}"
                     alt="Hero background"
-                    class="w-full h-full object-cover opacity-80"
+                    class="hero-media-main w-full h-full object-cover opacity-80"
                 >
             @endif
             {{-- Gradient overlays for text readability and section transition --}}
@@ -101,10 +154,10 @@
 
         <div class="relative z-10 text-left mx-4">
             {{-- Hero title uses fluid typography: clamp(min, preferred, max) --}}
-            <h1 class="reveal-hero font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 48px);">
+            <h1 class="font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 48px);">
                 {{ $heroTitle }}
             </h1>
-            <p class="reveal-hero reveal-delay-200 font-mono text-[12px] sm:text-base md:text-lg lg:text-[18px] tracking-[0.08em] sm:tracking-widest text-white mt-2 sm:mt-3">
+            <p class="font-mono text-[12px] sm:text-base md:text-lg lg:text-[18px] tracking-[0.08em] sm:tracking-widest text-white mt-2 sm:mt-3">
                 {{ $heroSubtitle }}
             </p>
         </div>
@@ -328,7 +381,7 @@
                                                 @elseif($mediaUrl)
                                                     <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
                                                         @if($mediaType === 'video')
-                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                            <div class="video-glass-container w-full h-full"><div class="video-glass-backdrop"></div><video data-lazy-video data-src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video></div>
                                                         @else
                                                             <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                                         @endif
@@ -366,7 +419,7 @@
                                                 @elseif($mediaUrl)
                                                     <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
                                                         @if($mediaType === 'video')
-                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                            <div class="video-glass-container w-full h-full"><div class="video-glass-backdrop"></div><video data-lazy-video data-src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video></div>
                                                         @else
                                                             <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                                         @endif
@@ -427,7 +480,7 @@
                                                 @elseif($mediaUrl)
                                                     <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
                                                         @if($mediaType === 'video')
-                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                            <div class="video-glass-container w-full h-full"><div class="video-glass-backdrop"></div><video data-lazy-video data-src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video></div>
                                                         @else
                                                             <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                                         @endif
@@ -465,7 +518,7 @@
                                                 @elseif($mediaUrl)
                                                     <div class="w-full h-full cursor-pointer" @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })">
                                                         @if($mediaType === 'video')
-                                                            <video src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline autoplay></video>
+                                                            <div class="video-glass-container w-full h-full"><div class="video-glass-backdrop"></div><video data-lazy-video data-src="{{ $mediaUrl }}" class="w-full h-full object-cover" muted loop playsinline></video></div>
                                                         @else
                                                             <img src="{{ $mediaUrl }}" alt="Corporate media" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                                                         @endif
@@ -490,7 +543,7 @@
     ========================================= --}}
     @if($olderProjects->count() > 0)
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 rounded-b-4xl">
-        <div class="w-full mx-auto max-w-[1200px] mb-[-180px] sm:mb-[-360px]">
+        <div class="w-full mx-auto max-w-[1200px] mb-[-130px] sm:mb-[-360px]">
             {{-- Section Header --}}
             <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
                 <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
@@ -716,16 +769,18 @@
                                 class="relative w-full aspect-video rounded-3xl overflow-hidden cursor-pointer group"
                                 @click="$dispatch('open-lightbox', { url: '{{ $mediaUrl }}', type: '{{ $mediaType }}' })"
                             >
-                                <video 
-                                    src="{{ $mediaUrl }}"
-                                    poster="{{ $thumbnailUrl }}"
-                                    class="w-full h-full object-cover"
-                                    muted
-                                    loop
-                                    playsinline
-                                    onmouseenter="this.play()"
-                                    onmouseleave="this.pause()"
-                                ></video>
+                                <div class="video-glass-container w-full h-full">
+                                    <div class="video-glass-backdrop"></div>
+                                    <video 
+                                        data-lazy-video
+                                        data-src="{{ $mediaUrl }}"
+                                        poster="{{ $thumbnailUrl }}"
+                                        class="w-full h-full object-cover"
+                                        muted
+                                        loop
+                                        playsinline
+                                    ></video>
+                                </div>
                                 {{-- Hover Overlay --}}
                                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
                             </div>
@@ -756,7 +811,7 @@
          CLIENTS SECTION (Black Background) - Endless Carousel
     ========================================= --}}
     @if($clients->count() > 0)
-    <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[200px] sm:pt-[280px] md:pt-[380px]">
+    <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[130px] sm:pt-[280px] md:pt-[380px]">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
             <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">

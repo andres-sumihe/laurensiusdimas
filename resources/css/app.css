@@ -65,3 +65,139 @@ body {
 .animate-marquee:hover {
     animation-play-state: paused;
 }
+
+/* ========================================
+   ENTRANCE ANIMATIONS - Reveal on Scroll
+   ======================================== */
+
+/* Base state for animated elements - hidden initially */
+[x-reveal],
+.reveal {
+    opacity: 0;
+    will-change: opacity, transform;
+}
+
+/* Revealed state */
+[x-reveal].revealed,
+.reveal.revealed {
+    opacity: 1;
+}
+
+/* Animation variants - apply these classes for different effects */
+
+/* Fade Up (default) */
+.reveal-fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-fade-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade In (simple opacity) */
+.reveal-fade {
+    opacity: 0;
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-fade.revealed {
+    opacity: 1;
+}
+
+/* Fade Left */
+.reveal-fade-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-fade-left.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Fade Right */
+.reveal-fade-right {
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-fade-right.revealed {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Scale Up */
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-scale.revealed {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Blur In */
+.reveal-blur {
+    opacity: 0;
+    filter: blur(10px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-blur.revealed {
+    opacity: 1;
+    filter: blur(0);
+}
+
+/* Clip Reveal (wipe from bottom) */
+.reveal-clip {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-clip.revealed {
+    clip-path: inset(0 0 0 0);
+}
+
+/* Stagger delays - use with data-delay or inline style */
+.reveal-delay-100 { transition-delay: 100ms; }
+.reveal-delay-200 { transition-delay: 200ms; }
+.reveal-delay-300 { transition-delay: 300ms; }
+.reveal-delay-400 { transition-delay: 400ms; }
+.reveal-delay-500 { transition-delay: 500ms; }
+
+/* Hero specific - faster timing for above-the-fold content */
+.reveal-hero {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-hero.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    [x-reveal],
+    .reveal,
+    .reveal-fade-up,
+    .reveal-fade,
+    .reveal-fade-left,
+    .reveal-fade-right,
+    .reveal-scale,
+    .reveal-blur,
+    .reveal-clip,
+    .reveal-hero {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        clip-path: none;
+        transition: none;
+    }
+}

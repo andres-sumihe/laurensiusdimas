@@ -49,7 +49,7 @@
         <div class="absolute inset-0 bg-black"></div>
 
         {{-- Header Logo - Top Left (positioned relative to 1440px container) --}}
-        <div class="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20
+        <div class="reveal-hero absolute top-4 left-4 sm:top-8 sm:left-8 md:top-10 md:left-12 lg:top-[12%] z-20
                     lg:left-[calc((100vw-1440px)/2+48px)]">
             <a href="#" class="block">
                 <img 
@@ -101,10 +101,10 @@
 
         <div class="relative z-10 text-left mx-4">
             {{-- Hero title uses fluid typography: clamp(min, preferred, max) --}}
-            <h1 class="font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 48px);">
+            <h1 class="reveal-hero font-display uppercase drop-shadow-[0_8px_28px_rgba(0,0,0,0.65)]" style="font-size: clamp(2rem, 5vw + 1rem, 48px);">
                 {{ $heroTitle }}
             </h1>
-            <p class="font-mono text-[12px] sm:text-base md:text-lg lg:text-[18px] tracking-[0.08em] sm:tracking-widest text-white mt-2 sm:mt-3">
+            <p class="reveal-hero reveal-delay-200 font-mono text-[12px] sm:text-base md:text-lg lg:text-[18px] tracking-[0.08em] sm:tracking-widest text-white mt-2 sm:mt-3">
                 {{ $heroSubtitle }}
             </p>
         </div>
@@ -117,7 +117,7 @@
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <span class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-white whitespace-nowrap">
                     VISUAL WORKER
                 </span>
@@ -125,7 +125,7 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
-                <div class="hidden md:flex md:col-span-4 my-auto justify-center items-center order-1">
+                <div class="reveal-scale reveal-delay-200 hidden md:flex md:col-span-4 my-auto justify-center items-center order-1">
                     @php
                         $aboutLogoUrl = asset('logo.svg');
                     @endphp
@@ -137,7 +137,7 @@
                 </div>
 
                 {{-- Text Content (Right) --}}
-                <div class="{{ $logoUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-6 sm:space-y-8 order-2">
+                <div class="reveal-fade-up reveal-delay-100 {{ $logoUrl ? 'md:col-span-8' : 'md:col-span-12' }} space-y-6 sm:space-y-8 order-2">
                     {{-- Bio --}}
                     <div class="space-y-6 text-gray-300 leading-relaxed">
                         @if($bioShort)
@@ -185,7 +185,7 @@
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 rounded-t-4xl">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
+            <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
                 <span class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                     {{ $portfolioHeading }}
                 </span>
@@ -209,7 +209,7 @@
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 relative overflow-hidden">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div class="mb-2">
+            <div class="reveal-fade-up mb-2">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-2">
                     <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                         CORPORATE PROJECTS
@@ -492,7 +492,7 @@
     <section class="bg-white text-black px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 rounded-b-4xl">
         <div class="w-full mx-auto max-w-[1200px] mb-[-180px] sm:mb-[-360px]">
             {{-- Section Header --}}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
+            <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
                 <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-black whitespace-nowrap">
                     {{ $olderHeading }}
                 </h2>
@@ -759,7 +759,7 @@
     <section class="bg-black text-white px-4 sm:px-6 md:px-8 py-10 sm:py-12 md:py-16 pt-[200px] sm:pt-[280px] md:pt-[380px]">
         <div class="w-full mx-auto max-w-[1200px]">
             {{-- Section Header --}}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">
+            <div class="reveal-fade-up flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-8 sm:mb-10 md:mb-12">
                 <h2 class="font-display text-md sm:text-[28px] md:text-[32px] uppercase text-white whitespace-nowrap">
                     CLIENTS
                 </h2>
@@ -767,7 +767,7 @@
             </div>
             
             {{-- Endless Carousel Slider --}}
-            <div class="relative overflow-hidden min-h-20 sm:min-h-[100px] md:min-h-[120px] flex items-center">
+            <div class="reveal-fade reveal-delay-200 relative overflow-hidden min-h-20 sm:min-h-[100px] md:min-h-[120px] flex items-center">
                 {{-- Fade overlay left --}}
                 <div class="absolute left-0 top-0 bottom-0 z-10 pointer-events-none w-12 sm:w-20 md:w-[120px] bg-gradient-to-r from-black to-transparent"></div>
                 {{-- Fade overlay right --}}
@@ -878,7 +878,7 @@
         <div class="w-full mx-auto max-w-[1200px]">
             
             {{-- CTA Section --}}
-            <div class="flex flex-col gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
+            <div class="reveal-fade-up flex flex-col gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
                 <div class="flex flex-col lg:flex-row items-start lg:items-center w-full gap-4 sm:gap-6 lg:gap-12">
                     <h2 class="font-body font-bold text-md sm:text-xl md:text-2xl lg:text-3xl text-white">
                         Bring Your Vision to Life!
@@ -891,7 +891,7 @@
             </div>
 
             {{-- Bottom Footer --}}
-            <div class="flex flex-col sm:flex-row justify-between gap-6 text-sm border-t border-gray-800 pt-6 sm:pt-8">
+            <div class="reveal-fade reveal-delay-200 flex flex-col sm:flex-row justify-between gap-6 text-sm border-t border-gray-800 pt-6 sm:pt-8">
                 {{-- Logo + Copyright --}}
                 <div class="flex sm:flex-row items-center gap-6 text-center sm:text-left">
                     <div class="hidden md:block">

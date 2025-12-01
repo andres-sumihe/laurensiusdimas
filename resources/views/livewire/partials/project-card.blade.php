@@ -87,7 +87,7 @@
     Safelist for Tailwind JIT (static references so classes get compiled):
     col-span-3 col-span-4 col-span-6 col-span-12 grid-cols-12
 --}}
-<article class="space-y-2 sm:space-y-3">
+<article class="reveal-fade-up space-y-2 sm:space-y-3">
     @if($layout === 'single')
         {{-- Single Hero Layout --}}
         @php $item = $mediaItems->first(); @endphp

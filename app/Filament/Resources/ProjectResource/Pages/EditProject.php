@@ -42,6 +42,7 @@ class EditProject extends EditRecord
     }
 
     public $mediaUpload;
+    public $thumbnailUpload;
 
     protected function getHeaderActions(): array
     {
@@ -53,13 +54,29 @@ class EditProject extends EditRecord
     public function updatedMediaUpload()
     {
         if ($this->mediaUpload) {
-            $path = $this->mediaUpload->store('projects/media', 'public');
+            $path = $this->mediaUpload->store('project-media', 'public');
             
             // Dispatch event with the stored path
             $this->dispatch('media-uploaded', path: $path);
             
             // Clear the upload
             $this->mediaUpload = null;
+            
+            return $path;
+        }
+        return null;
+    }
+
+    public function updatedThumbnailUpload()
+    {
+        if ($this->thumbnailUpload) {
+            $path = $this->thumbnailUpload->store('project-media/thumbnails', 'public');
+            
+            // Dispatch event with the stored path
+            $this->dispatch('thumbnail-uploaded', path: $path);
+            
+            // Clear the upload
+            $this->thumbnailUpload = null;
             
             return $path;
         }

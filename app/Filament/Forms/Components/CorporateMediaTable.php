@@ -94,7 +94,7 @@ class CorporateMediaTable extends LivewireComponent implements HasForms, HasTabl
                         
                         Forms\Components\FileUpload::make('url')
                             ->label('Media File')
-                            ->directory('corporate-media')
+                            ->directory('project-media')
                             ->disk('public')
                             ->visibility('public')
                             ->acceptedFileTypes(['image/*', 'video/*'])
@@ -104,8 +104,9 @@ class CorporateMediaTable extends LivewireComponent implements HasForms, HasTabl
                             ->imageEditor(),
                         
                         Forms\Components\FileUpload::make('thumbnail_url')
-                            ->label('Video Thumbnail (optional)')
-                            ->directory('corporate-media/thumbnails')
+                            ->label('Thumbnail (optional)')
+                            ->helperText('Custom thumbnail for video preview')
+                            ->directory('project-media/thumbnails')
                             ->disk('public')
                             ->visibility('public')
                             ->image()
@@ -140,7 +141,7 @@ class CorporateMediaTable extends LivewireComponent implements HasForms, HasTabl
                         
                         Forms\Components\FileUpload::make('url')
                             ->label('Media File')
-                            ->directory('corporate-media')
+                            ->directory('project-media')
                             ->disk('public')
                             ->visibility('public')
                             ->acceptedFileTypes(['image/*', 'video/*'])
@@ -150,8 +151,9 @@ class CorporateMediaTable extends LivewireComponent implements HasForms, HasTabl
                             ->imageEditor(),
                         
                         Forms\Components\FileUpload::make('thumbnail_url')
-                            ->label('Video Thumbnail (optional)')
-                            ->directory('corporate-media/thumbnails')
+                            ->label('Thumbnail (optional)')
+                            ->helperText('Custom thumbnail for video preview')
+                            ->directory('project-media/thumbnails')
                             ->disk('public')
                             ->visibility('public')
                             ->image()

@@ -18,6 +18,8 @@
             slotCount: {{ $slotCount }},
             uploading: false,
             uploadProgress: 0,
+            uploadingThumbnail: false,
+            thumbnailProgress: 0,
             
             // Drag and drop state
             draggedIndex: null,
@@ -31,6 +33,16 @@
                         this.setMedia(this.activeSlot, 'url', data.path);
                         this.uploading = false;
                         this.uploadProgress = 0;
+                    }
+                });
+                
+                // Listen for thumbnail-uploaded event
+                this.$wire.$on('thumbnail-uploaded', (data) => {
+                    console.log('Received thumbnail-uploaded event:', data);
+                    if (this.activeSlot !== null && data?.path) {
+                        this.setMedia(this.activeSlot, 'thumbnailUrl', data.path);
+                        this.uploadingThumbnail = false;
+                        this.thumbnailProgress = 0;
                     }
                 });
             },
@@ -59,7 +71,7 @@
                 }
                 this.mediaItems[index][field] = value;
                 
-                // Auto-detect YouTube URL and set type + thumbnail
+                // Auto-detect media type from URL
                 if (field === 'url' && value) {
                     const youtubeId = this.extractYouTubeId(value);
                     if (youtubeId) {
@@ -67,8 +79,13 @@
                         // Always update thumbnail when URL changes (use hqdefault as it always exists)
                         this.mediaItems[index].thumbnailUrl = 'https://img.youtube.com/vi/' + youtubeId + '/hqdefault.jpg';
                     } else {
-                        // Not a YouTube URL - clear thumbnail if type is not video
-                        if (this.mediaItems[index].type !== 'video') {
+                        // Check if it's a video file
+                        const url = value.toLowerCase();
+                        if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov') || url.endsWith('.ogg')) {
+                            this.mediaItems[index].type = 'video';
+                        } else if (this.mediaItems[index].type === 'youtube') {
+                            // Reset type to image if it was youtube but now isn't
+                            this.mediaItems[index].type = 'image';
                             this.mediaItems[index].thumbnailUrl = null;
                         }
                     }
@@ -107,6 +124,16 @@
                 return media?.type === 'youtube' || (media?.url && this.extractYouTubeId(media.url));
             },
             
+            // Check if media is a video file (not YouTube)
+            isVideo(index) {
+                const media = this.mediaItems[index];
+                if (!media?.url) return false;
+                if (media.type === 'video') return true;
+                // Check file extension
+                const url = media.url.toLowerCase();
+                return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov') || url.endsWith('.ogg');
+            },
+            
             // Get YouTube thumbnail (use hqdefault as it always exists, maxresdefault may not)
             getYouTubeThumbnail(index) {
                 const media = this.mediaItems[index];
@@ -136,6 +163,29 @@
                 if (this.isYouTube(index)) {
                     return this.getYouTubeThumbnail(index);
                 }
+                
+                // For video, return thumbnail if available, otherwise null (will use video element)
+                if (this.isVideo(index)) {
+                    if (media.thumbnailUrl) {
+                        if (media.thumbnailUrl.startsWith('http')) {
+                            return media.thumbnailUrl;
+                        }
+                        return '/storage/' + media.thumbnailUrl;
+                    }
+                    return null; // No thumbnail, will show video element
+                }
+                
+                if (media.url.startsWith('http')) {
+                    return media.url;
+                }
+                
+                return '/storage/' + media.url;
+            },
+            
+            // Get the actual media URL (for video src)
+            getMediaUrl(index) {
+                const media = this.mediaItems[index];
+                if (!media?.url) return null;
                 
                 if (media.url.startsWith('http')) {
                     return media.url;
@@ -184,6 +234,31 @@
                     (event) => {
                         // Progress
                         this.uploadProgress = event.detail.progress;
+                    }
+                );
+            },
+            
+            uploadThumbnail(file) {
+                if (!file) return;
+                
+                this.uploadingThumbnail = true;
+                this.thumbnailProgress = 0;
+                
+                $wire.upload('thumbnailUpload', file, 
+                    (uploadedFilename) => {
+                        // Success - the event listener will handle setting the path
+                        console.log('Thumbnail upload success, waiting for event...', uploadedFilename);
+                    },
+                    (error) => {
+                        // Error
+                        this.uploadingThumbnail = false;
+                        this.thumbnailProgress = 0;
+                        console.error('Thumbnail upload failed:', error);
+                        alert('Thumbnail upload failed. Please try again.');
+                    },
+                    (event) => {
+                        // Progress
+                        this.thumbnailProgress = event.detail.progress;
                     }
                 );
             },
@@ -332,25 +407,52 @@
                         x-show="hasMedia({{ $index }})"
                         style="width: 100%; height: 100%; border-radius: 8px; overflow: hidden; position: relative;"
                     >
-                        {{-- Use template with key to force image recreation when URL changes --}}
-                        <template x-for="previewUrl in [getPreviewUrl({{ $index }})]" :key="previewUrl">
-                            <img 
-                                :src="previewUrl"
-                                style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;"
-                                x-on:error="
-                                    if (isYouTube({{ $index }})) {
-                                        const media = mediaItems[{{ $index }}];
-                                        const id = extractYouTubeId(media?.url);
-                                        if (id && !$el.dataset.triedFallback) {
-                                            $el.dataset.triedFallback = 'true';
-                                            $el.src = 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg';
-                                            return;
+                        {{-- Image/YouTube Preview (when not a video or video has thumbnail) --}}
+                        <template x-if="!isVideo({{ $index }}) || getPreviewUrl({{ $index }})">
+                            <template x-for="previewUrl in [getPreviewUrl({{ $index }})]" :key="previewUrl">
+                                <img 
+                                    x-show="previewUrl"
+                                    :src="previewUrl"
+                                    style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;"
+                                    x-on:error="
+                                        if (isYouTube({{ $index }})) {
+                                            const media = mediaItems[{{ $index }}];
+                                            const id = extractYouTubeId(media?.url);
+                                            if (id && !$el.dataset.triedFallback) {
+                                                $el.dataset.triedFallback = 'true';
+                                                $el.src = 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg';
+                                                return;
+                                            }
                                         }
-                                    }
-                                    $el.style.display = 'none';
-                                "
-                            />
+                                        $el.style.display = 'none';
+                                    "
+                                />
+                            </template>
                         </template>
+                        
+                        {{-- Video Preview (when video type and no thumbnail) --}}
+                        <template x-if="isVideo({{ $index }}) && !getPreviewUrl({{ $index }})">
+                            <video 
+                                :src="getMediaUrl({{ $index }})"
+                                style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;"
+                                muted
+                                playsinline
+                                @mouseenter="$el.play()"
+                                @mouseleave="$el.pause(); $el.currentTime = 0;"
+                            ></video>
+                        </template>
+                        
+                        {{-- Video badge --}}
+                        <div 
+                            x-show="isVideo({{ $index }})" 
+                            x-cloak 
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 12px; height: 12px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            VIDEO
+                        </div>
                         <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0;" class="group-hover:opacity-100 transition-opacity">
                             <button 
                                 type="button"
@@ -524,11 +626,21 @@
                             {{-- Current file preview --}}
                             <template x-if="getMedia(activeSlot).url && !uploading">
                                 <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: #1F2937; border-radius: 12px; border: 1px solid #374151;">
+                                    {{-- Image preview (for images and videos with thumbnails) --}}
                                     <img 
-                                        x-bind:src="getPreviewUrl(activeSlot)"
+                                        x-show="!isVideo(activeSlot) || getPreviewUrl(activeSlot)"
+                                        x-bind:src="getPreviewUrl(activeSlot) || getMediaUrl(activeSlot)"
                                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
                                         onerror="this.style.background='#374151'"
                                     />
+                                    {{-- Video preview (for videos without thumbnails) --}}
+                                    <video 
+                                        x-show="isVideo(activeSlot) && !getPreviewUrl(activeSlot)"
+                                        x-bind:src="getMediaUrl(activeSlot)"
+                                        style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #374151;"
+                                        muted
+                                        playsinline
+                                    ></video>
                                     <div style="flex: 1; min-width: 0;">
                                         <p style="font-size: 15px; color: white; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0;" x-text="getMedia(activeSlot).url?.split('/').pop() || 'No file'"></p>
                                         <p style="font-size: 13px; color: #9CA3AF; margin: 4px 0 0; text-transform: capitalize;" x-text="getMedia(activeSlot).type"></p>
@@ -632,14 +744,100 @@
                         </div>
                     </div>
 
-                    {{-- Thumbnail (for videos and YouTube) --}}
-                    <div x-show="getMedia(activeSlot).type === 'video' || getMedia(activeSlot).type === 'youtube'">
+                    {{-- Thumbnail (only for video types) --}}
+                    <div x-show="getMedia(activeSlot).type === 'video'">
                         <label class="fi-fo-field-wrp-label inline-flex items-center gap-x-3">
                             <span class="text-sm font-medium leading-6 text-gray-950 dark:text-white">
-                                Thumbnail URL <span x-show="getMedia(activeSlot).type === 'youtube'" style="font-weight: normal; color: #9CA3AF;">(auto-fetched from YouTube)</span>
+                                Video Thumbnail (optional)
                             </span>
                         </label>
-                        <div class="mt-2">
+                        <p style="font-size: 12px; color: #6B7280; margin: 4px 0 8px;">
+                            Custom thumbnail for video preview
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            {{-- Thumbnail upload area --}}
+                            <div 
+                                x-show="!uploadingThumbnail && !getMedia(activeSlot).thumbnailUrl"
+                                style="border: 2px dashed #374151; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
+                                class="hover:border-primary-500 hover:bg-gray-800/50 group"
+                                @click="$refs.thumbnailInput.click()"
+                                @dragover.prevent="$event.target.style.borderColor = '#F59E0B'"
+                                @dragleave.prevent="$event.target.style.borderColor = '#374151'"
+                                @drop.prevent="
+                                    $event.target.style.borderColor = '#374151';
+                                    if ($event.dataTransfer.files.length) {
+                                        uploadThumbnail($event.dataTransfer.files[0]);
+                                    }
+                                "
+                            >
+                                <div class="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3 group-hover:bg-gray-700 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px; color: #9CA3AF;" class="group-hover:text-white transition-colors">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                    </svg>
+                                </div>
+                                <p style="font-size: 14px; color: #D1D5DB; margin: 0; font-weight: 500;">
+                                    <span style="color: #F59E0B;">Upload thumbnail</span> or drag and drop
+                                </p>
+                                <p style="font-size: 12px; color: #6B7280; margin: 6px 0 0;">
+                                    PNG, JPG, GIF up to 5MB
+                                </p>
+                            </div>
+                            
+                            {{-- Hidden thumbnail file input --}}
+                            <input 
+                                x-ref="thumbnailInput"
+                                type="file"
+                                accept="image/*"
+                                @change="uploadThumbnail($event.target.files[0])"
+                                style="display: none;"
+                            />
+                            
+                            {{-- Thumbnail upload progress --}}
+                            <div x-show="uploadingThumbnail" style="padding: 20px; background: #1F2937; border-radius: 12px; text-align: center;">
+                                <svg class="animate-spin" style="width: 32px; height: 32px; color: #F59E0B; margin: 0 auto 12px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p style="font-size: 14px; color: #F59E0B; margin: 0; font-weight: 500;">Uploading thumbnail...</p>
+                                <div style="margin-top: 12px; background: #374151; border-radius: 4px; height: 6px; overflow: hidden;">
+                                    <div 
+                                        style="background: #F59E0B; height: 100%; transition: width 0.2s;"
+                                        x-bind:style="'width: ' + thumbnailProgress + '%'"
+                                    ></div>
+                                </div>
+                            </div>
+                            
+                            {{-- Current thumbnail preview --}}
+                            <template x-if="getMedia(activeSlot).thumbnailUrl && !uploadingThumbnail">
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #1F2937; border-radius: 12px; border: 1px solid #374151;">
+                                    <img 
+                                        x-bind:src="getMedia(activeSlot).thumbnailUrl.startsWith('http') ? getMedia(activeSlot).thumbnailUrl : '/storage/' + getMedia(activeSlot).thumbnailUrl"
+                                        style="width: 64px; height: 64px; object-fit: cover; border-radius: 8px;"
+                                        onerror="this.style.background='#374151'"
+                                    />
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p style="font-size: 14px; color: white; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0;" x-text="getMedia(activeSlot).thumbnailUrl?.split('/').pop() || 'Thumbnail'"></p>
+                                        <p style="font-size: 12px; color: #9CA3AF; margin: 2px 0 0;">Video thumbnail</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        @click="setMedia(activeSlot, 'thumbnailUrl', null)"
+                                        style="padding: 8px; color: #F87171; background: rgba(248, 113, 113, 0.1); border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;"
+                                        class="hover:bg-red-500/20 hover:text-red-400"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 18px; height: 18px;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                            
+                            {{-- URL input as alternative --}}
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="flex: 1; height: 1px; background: #374151;"></div>
+                                <span style="font-size: 12px; color: #6B7280; font-weight: 500;">or enter URL</span>
+                                <div style="flex: 1; height: 1px; background: #374151;"></div>
+                            </div>
                             <input 
                                 type="text"
                                 placeholder="https://example.com/thumbnail.jpg"

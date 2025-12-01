@@ -208,19 +208,13 @@ class ProjectMediaTable extends Component implements HasActions, HasForms, HasTa
                 ->columnSpanFull(),
             
             Forms\Components\FileUpload::make('thumbnail_url')
-                ->label('Video Thumbnail (optional)')
+                ->label('Thumbnail (optional)')
+                ->helperText('Custom thumbnail for video preview')
                 ->directory('project-media/thumbnails')
                 ->disk('public')
                 ->visibility('public')
                 ->image()
-                ->visible(fn (callable $get) => $get('type') === 'video' && $get('source_type') === 'file')
-                ->columnSpanFull(),
-            
-            Forms\Components\TextInput::make('external_thumbnail_url')
-                ->label('Thumbnail URL (optional)')
-                ->url()
-                ->placeholder('https://example.com/thumbnail.jpg')
-                ->visible(fn (callable $get) => $get('type') === 'video' && $get('source_type') === 'url')
+                ->visible(fn (callable $get) => $get('type') === 'video')
                 ->columnSpanFull(),
         ]);
 

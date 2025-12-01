@@ -43,7 +43,9 @@ class CorporateMediaRelationManager extends RelationManager
                 
                 Forms\Components\FileUpload::make('url')
                     ->label('Media File')
-                    ->directory('corporate-media')
+                    ->directory('project-media')
+                    ->disk('public')
+                    ->visibility('public')
                     ->acceptedFileTypes(['image/*', 'video/*'])
                     ->required()
                     ->columnSpanFull()
@@ -51,8 +53,11 @@ class CorporateMediaRelationManager extends RelationManager
                     ->imageEditor(),
                 
                 Forms\Components\FileUpload::make('thumbnail_url')
-                    ->label('Video Thumbnail (optional)')
-                    ->directory('corporate-media/thumbnails')
+                    ->label('Thumbnail (optional)')
+                    ->helperText('Custom thumbnail for video preview')
+                    ->directory('project-media/thumbnails')
+                    ->disk('public')
+                    ->visibility('public')
                     ->image()
                     ->visible(fn (callable $get) => $get('type') === 'video')
                     ->columnSpanFull(),

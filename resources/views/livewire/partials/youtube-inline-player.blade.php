@@ -21,6 +21,7 @@
 <div 
     x-data="{
         inView: false,
+        playerReady: false,
         player: null,
         isMuted: true,
         isPaused: false,
@@ -84,12 +85,18 @@
                     onReady: (event) => {
                         event.target.playVideo();
                         this.isPaused = false;
+                        // Mark player as ready - this will fade out the thumbnail
+                        this.playerReady = true;
                     },
                     onStateChange: (event) => {
                         // YT.PlayerState.ENDED = 0
                         if (event.data === 0) {
                             event.target.seekTo(0);
                             event.target.playVideo();
+                        }
+                        // YT.PlayerState.PLAYING = 1
+                        if (event.data === 1 && !this.playerReady) {
+                            this.playerReady = true;
                         }
                         // Update pause state
                         this.isPaused = (event.data === 2); // YT.PlayerState.PAUSED = 2
@@ -120,20 +127,20 @@
     }"
     class="relative w-full h-full overflow-hidden"
 >
-    {{-- Thumbnail (shows before player loads) --}}
+    {{-- Thumbnail - stays visible until player is READY (not just inView) --}}
     <img 
-        x-show="!inView"
         :src="thumbnailUrl"
         alt="Video thumbnail"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+        :class="playerReady ? 'opacity-0 pointer-events-none' : 'opacity-100'"
         loading="lazy"
     />
     
-    {{-- YouTube Player Container --}}
+    {{-- YouTube Player Container - always present but behind thumbnail --}}
     <div 
-        x-show="inView"
         :id="playerId"
         class="absolute inset-0 w-full h-full"
+        :class="inView ? '' : 'invisible'"
     ></div>
     
     @if($showControls)

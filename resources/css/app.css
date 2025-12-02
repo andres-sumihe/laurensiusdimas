@@ -69,105 +69,34 @@ body {
 }
 
 /* ========================================
-   ENTRANCE ANIMATIONS - Reveal on Scroll
+   ENTRANCE ANIMATIONS - Powered by Anime.js
+   CSS here is for fallback/reduced motion only
    ======================================== */
 
-/* Base state for animated elements - hidden initially */
+/* Base state - animations are handled by anime.js */
 [x-reveal],
-.reveal {
-    opacity: 0;
+.reveal,
+.reveal-fade-up,
+.reveal-fade,
+.reveal-fade-left,
+.reveal-fade-right,
+.reveal-scale,
+.reveal-blur,
+.reveal-clip {
     will-change: opacity, transform;
 }
 
-/* Revealed state */
-[x-reveal].revealed,
-.reveal.revealed {
-    opacity: 1;
+/* Revealed state marker (set by anime.js) */
+.revealed {
+    /* Animation complete - element is visible */
 }
 
-/* Animation variants - apply these classes for different effects */
-
-/* Fade Up (default) */
-.reveal-fade-up {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-fade-up.revealed {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Fade In (simple opacity) */
-.reveal-fade {
-    opacity: 0;
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-fade.revealed {
-    opacity: 1;
-}
-
-/* Fade Left */
-.reveal-fade-left {
-    opacity: 0;
-    transform: translateX(-40px);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-fade-left.revealed {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* Fade Right */
-.reveal-fade-right {
-    opacity: 0;
-    transform: translateX(40px);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-fade-right.revealed {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* Scale Up */
-.reveal-scale {
-    opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-scale.revealed {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Blur In */
-.reveal-blur {
-    opacity: 0;
-    filter: blur(10px);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-blur.revealed {
-    opacity: 1;
-    filter: blur(0);
-}
-
-/* Clip Reveal (wipe from bottom) */
-.reveal-clip {
-    clip-path: inset(100% 0 0 0);
-    transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-clip.revealed {
-    clip-path: inset(0 0 0 0);
-}
-
-/* Stagger delays - use with data-delay or inline style */
-.reveal-delay-100 { transition-delay: 100ms; }
-.reveal-delay-200 { transition-delay: 200ms; }
+/* Stagger delays - read by anime.js */
+.reveal-delay-100 { /* 100ms delay */ }
+.reveal-delay-200 { /* 200ms delay */ }
+.reveal-delay-300 { /* 300ms delay */ }
+.reveal-delay-400 { /* 400ms delay */ }
+.reveal-delay-500 { /* 500ms delay */ }
 .reveal-delay-300 { transition-delay: 300ms; }
 .reveal-delay-400 { transition-delay: 400ms; }
 .reveal-delay-500 { transition-delay: 500ms; }
@@ -254,6 +183,7 @@ video[data-lazy-video].video-loaded {
 
 /* ========================================
    Hero Loading Overlay - Morphing Blob
+   Fade out handled by Anime.js
    ======================================== */
 .hero-loader {
     position: absolute;
@@ -263,13 +193,6 @@ video[data-lazy-video].video-loaded {
     align-items: center;
     justify-content: center;
     background: black;
-    transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
-}
-
-.hero-loader.loaded {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
 }
 
 /* Morphing blob container */
@@ -381,86 +304,35 @@ video[data-lazy-video].video-loaded {
 }
 
 /* ========================================
-   Single Logo - Animated from center to corner
+   Single Logo - Animated by Anime.js
+   CSS provides initial state only
    ======================================== */
 .hero-logo-container {
     position: absolute;
     z-index: 100;
     display: block;
-    /* Default to center position to prevent initial jump */
+    /* Initial center position - anime.js animates from here */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* Smooth easing without overshoot */
-    transition: 
-        top 0.9s cubic-bezier(0.25, 0.1, 0.25, 1),
-        left 0.9s cubic-bezier(0.25, 0.1, 0.25, 1),
-        transform 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .hero-logo {
-    transition: 
-        width 0.9s cubic-bezier(0.25, 0.1, 0.25, 1),
-        filter 0.8s ease-out;
-}
-
-/* Center position (loading state) - reinforces default */
-.hero-logo-container.logo-in-center {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.logo-in-center .hero-logo {
     width: 48px;
     height: auto;
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
-    animation: logo-breathe 2s ease-in-out infinite;
 }
 
-/* Corner position (final state) - positioned relative to 1440px max-width container */
-.hero-logo-container.logo-in-corner {
-    top: 1.5rem;
-    /* Calculate left edge of 1440px container: (100vw - 1440px) / 2 + padding */
-    left: max(1.5rem, calc((100vw - 1440px) / 2 + 1.5rem));
-    transform: translate(0, 0);
-}
-
-.logo-in-corner .hero-logo {
-    width: 3rem;
-    height: auto;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
-    animation: none;
-}
-
-/* Responsive corner positions */
-@media (min-width: 640px) {
-    .hero-logo-container.logo-in-corner {
-        top: 4rem;
-        left: max(2rem, calc((100vw - 1440px) / 2 + 2rem));
-    }
-    .logo-in-corner .hero-logo {
-        width: 2.5rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .hero-logo-container.logo-in-corner {
-        top: 4.5rem;
-        left: max(2.5rem, calc((100vw - 1440px) / 2 + 2.5rem));
-    }
-    .logo-in-corner .hero-logo {
-        width: 3rem;
-    }
-}
-
-@media (min-width: 1024px) {
-    .hero-logo-container.logo-in-corner {
-        top: 5rem;
+/* Reduced motion fallback */
+@media (prefers-reduced-motion: reduce) {
+    .hero-logo-container {
+        top: 3rem;
         left: max(3rem, calc((100vw - 1440px) / 2 + 3rem));
+        transform: translate(0, 0);
     }
-    .logo-in-corner .hero-logo {
+    .hero-logo {
         width: 54px;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
     }
 }
 

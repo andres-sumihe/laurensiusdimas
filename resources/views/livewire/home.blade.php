@@ -48,22 +48,87 @@
         x-data="{ 
             heroLoaded: false,
             logoReady: false,
-            blobFaded: false
+            blobFaded: false,
+            logoAnimation: null,
+            blobAnimation: null
         }"
         x-init="
             $nextTick(() => {
                 const heroMedia = $el.querySelector('.hero-media-container');
                 const video = heroMedia?.querySelector('video');
                 const img = heroMedia?.querySelector('.hero-media-main');
+                const heroLoader = $el.querySelector('.hero-loader');
+                const logoContainer = $el.querySelector('.hero-logo-container');
+                const logoImg = $el.querySelector('.hero-logo');
                 
                 const markLoaded = () => { 
                     if (!heroLoaded) {
                         heroLoaded = true;
-                        // Fade blob and move logo simultaneously
+                        
+                        // After short delay, animate logo to corner and fade blob
                         setTimeout(() => {
                             blobFaded = true;
                             logoReady = true;
-                        }, 500);
+                            
+                            // Animate loader fade out with anime.js
+                            if (heroLoader && window.anime) {
+                                window.anime.animate(heroLoader, {
+                                    opacity: [1, 0],
+                                    duration: 800,
+                                    ease: 'outQuad',
+                                    onComplete: () => {
+                                        heroLoader.style.visibility = 'hidden';
+                                        heroLoader.style.pointerEvents = 'none';
+                                    }
+                                });
+                            }
+                            
+                            // Animate logo from center to corner with anime.js
+                            if (logoContainer && logoImg && window.anime) {
+                                // Calculate responsive corner position
+                                const vw = window.innerWidth;
+                                const isMobile = vw < 640;
+                                const isTablet = vw >= 640 && vw < 1024;
+                                
+                                // Calculate container offset for max-width: 1440px
+                                const containerOffset = Math.max(0, (vw - 1440) / 2);
+                                
+                                let targetTop, targetLeft, targetWidth;
+                                if (isMobile) {
+                                    targetTop = 24;
+                                    targetLeft = Math.max(24, containerOffset + 24);
+                                    targetWidth = 32;
+                                } else if (isTablet) {
+                                    targetTop = 40;
+                                    targetLeft = Math.max(40, containerOffset + 40);
+                                    targetWidth = 48;
+                                } else {
+                                    targetTop = 48;
+                                    targetLeft = Math.max(48, containerOffset + 48);
+                                    targetWidth = 54;
+                                }
+                                
+                                // Anime.js v4 syntax: use { to: value } for target values
+                                // CSS starts at: top:50%, left:50%, transform:translate(-50%,-50%)
+                                // We animate TO the corner position
+                                window.anime.animate(logoContainer, {
+                                    top: { to: targetTop + 'px' },
+                                    left: { to: targetLeft + 'px' },
+                                    translateX: { to: '0%' },
+                                    translateY: { to: '0%' },
+                                    duration: 900,
+                                    ease: 'outQuart'
+                                });
+                                
+                                // Animate logo size and shadow
+                                window.anime.animate(logoImg, {
+                                    width: { to: targetWidth + 'px' },
+                                    filter: { to: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))' },
+                                    duration: 900,
+                                    ease: 'outQuart'
+                                });
+                            }
+                        }, 1000);
                     }
                 };
                 
@@ -91,20 +156,16 @@
                     -mx-[calc((100vw-100%)/2)] w-[100vw] max-w-[100vw]"
     >
         {{-- Morphing Blob Loading Overlay --}}
-        <div 
-            class="hero-loader"
-            :class="{ 'loaded': blobFaded }"
-        >
+        <div class="hero-loader">
             <div class="morphing-blob"></div>
         </div>
 
         <div class="absolute inset-0 bg-black"></div>
 
-        {{-- Single Logo Element - Starts centered, flies to corner --}}
+        {{-- Single Logo Element - Starts centered, animates to corner via anime.js --}}
         <a 
             href="#" 
             class="hero-logo-container z-50"
-            :class="logoReady ? 'logo-in-corner' : 'logo-in-center'"
         >
             <img 
                 src="{{ asset('logo.svg') }}" 
@@ -597,6 +658,7 @@
                             <div 
                                 x-data="{ 
                                     inView: false, 
+                                    playerReady: false,
                                     hasPlayed: false,
                                     isMuted: true,
                                     isPaused: false,
@@ -651,6 +713,8 @@
                                                     events: {
                                                         onReady: (event) => {
                                                             event.target.playVideo();
+                                                            // Mark player ready to fade out thumbnail
+                                                            this.playerReady = true;
                                                         },
                                                         onStateChange: (event) => {
                                                             // Track paused state to show overlay
@@ -658,6 +722,7 @@
                                                                 this.isPaused = true;
                                                             } else if (event.data === YT.PlayerState.PLAYING) {
                                                                 this.isPaused = false;
+                                                                if (!this.playerReady) this.playerReady = true;
                                                             }
                                                             // When video ends, restart immediately
                                                             if (event.data === YT.PlayerState.ENDED) {
@@ -695,20 +760,20 @@
                                 }"
                                 class="relative w-full aspect-video rounded-3xl overflow-hidden group"
                             >
-                                {{-- Thumbnail (shown before video loads) --}}
+                                {{-- Thumbnail - stays visible until player is READY --}}
                                 <img 
-                                    x-show="!inView"
                                     src="{{ $thumbnailUrl }}"
                                     alt="{{ $project->title }}"
-                                    class="absolute inset-0 w-full h-full object-cover"
+                                    class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                                    :class="playerReady ? 'opacity-0 pointer-events-none' : 'opacity-100'"
                                     loading="lazy"
                                 />
                                 
-                                {{-- YouTube Player Container --}}
+                                {{-- YouTube Player Container - always present but behind thumbnail --}}
                                 <div 
-                                    x-show="inView"
                                     :id="playerId"
                                     class="absolute inset-0 w-full h-full"
+                                    :class="inView ? '' : 'invisible'"
                                 ></div>
                                 
                                 {{-- Control Buttons --}}

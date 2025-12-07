@@ -41,6 +41,19 @@ class EditProject extends EditRecord
         }
     }
 
+    /**
+     * Mutate form data before saving - ensure corporate projects have null layout
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // For corporate projects, ensure layout is null
+        if (($data['section'] ?? '') === 'corporate') {
+            $data['layout'] = null;
+        }
+        
+        return $data;
+    }
+
     public $mediaUpload;
     public $thumbnailUpload;
 

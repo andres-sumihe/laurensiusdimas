@@ -97,7 +97,10 @@ class ProjectResource extends Resource
                             ->preload()
                             ->required(fn (callable $get) => $get('section') === 'corporate')
                             ->visible(fn (callable $get) => $get('section') === 'corporate')
-                            ->helperText('Select the corporate client for this project.'),
+                            ->helperText('Select the corporate client for this project.')
+                            ->validationMessages([
+                                'required' => 'A client must be selected for corporate projects.',
+                            ]),
 
                         Forms\Components\Select::make('layout')
                             ->label('Layout')
@@ -112,7 +115,8 @@ class ProjectResource extends Resource
                                     'four_two' => 'Four-Two (6-Up)',
                                 ])
                             ->default(fn (callable $get) => $get('section') === 'older' ? 'single' : 'three_two')
-                            ->required(fn (callable $get) => $get('section') !== 'corporate')
+                            ->required(fn (callable $get) => in_array($get('section'), ['curated', 'older']))
+                            ->nullable() // Allow null values
                             ->hidden(fn (callable $get) => $get('section') === 'corporate')
                             ->live(debounce: 100)
                             ->helperText(fn (callable $get) => $get('section') === 'older'
@@ -177,6 +181,7 @@ class ProjectResource extends Resource
                         Forms\Components\Toggle::make('is_visible')
                             ->label('Published')
                             ->default(true)
+                            ->live(debounce: 0) // Force live update
                             ->helperText('Toggle to show/hide on public site'),
                         
                         Forms\Components\TextInput::make('sort_order')

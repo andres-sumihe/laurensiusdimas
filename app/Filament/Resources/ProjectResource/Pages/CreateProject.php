@@ -38,6 +38,19 @@ class CreateProject extends CreateRecord
         }
     }
 
+    /**
+     * Mutate form data before creating - ensure corporate projects have null layout
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // For corporate projects, ensure layout is null
+        if (($data['section'] ?? '') === 'corporate') {
+            $data['layout'] = null;
+        }
+        
+        return $data;
+    }
+
     public $mediaUpload;
     public $thumbnailUpload;
 

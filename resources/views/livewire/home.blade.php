@@ -1005,7 +1005,13 @@
                         Bring Your Vision to Life!
                     </h2>
 
-                    <a id="start-a-project" href="mailto:{{ $contactEmail }}" class="w-full lg:flex-1 inline-flex items-center justify-center font-body font-bold px-6 sm:px-8 py-3 border border-white bg-transparent text-white text-base sm:text-lg rounded-xl transition-all hover:bg-white hover:text-black">
+                    @php
+                        $contactPhone = $settings->phone ?? null;
+                        $cleanPhone = $contactPhone ? preg_replace('/[^0-9]/', '', $contactPhone) : null;
+                        $waLink = $cleanPhone ? 'https://wa.me/' . $cleanPhone : null;
+                    @endphp
+
+                    <a id="start-a-project" href="{{ $waLink ?? ($settings->footer_cta_url ?? '') }}" target="{{ $waLink ? '_blank' : '_self' }}" rel="{{ $waLink ? 'noopener noreferrer' : '' }}" class="w-full lg:flex-1 inline-flex items-center justify-center font-body font-bold px-6 sm:px-8 py-3 border border-white bg-transparent text-white text-base sm:text-lg rounded-xl transition-all hover:bg-white hover:text-black">
                         Start a Project
                     </a>
                 </div>

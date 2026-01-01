@@ -188,6 +188,11 @@ class ManageSiteSettings extends Page
                                     ->label('Contact Email')
                                     ->placeholder('hello@example.com')
                                     ->helperText('Primary contact email'),
+
+                                Forms\Components\TextInput::make('phone')
+                                    ->label('Contact Phone')
+                                    ->placeholder('+628123456789')
+                                    ->helperText('International format (include country code). Used for WhatsApp link.'),
                                 
                                 Forms\Components\Repeater::make('social_links')
                                     ->label('Social Media Links')

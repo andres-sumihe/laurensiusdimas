@@ -32,6 +32,7 @@ class SiteSetting extends Model
         'bio_long',
         'resume_url',
         'email',
+        'phone',
         'social_links',
         'footer_text',
         'footer_cta_label',

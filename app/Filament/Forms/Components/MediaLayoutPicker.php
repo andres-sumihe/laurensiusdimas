@@ -80,6 +80,11 @@ class MediaLayoutPicker extends Field
                 ['cols' => 6, 'label' => '1'],
                 ['cols' => 6, 'label' => '2'],
             ],
+            'three' => [
+                ['cols' => 4, 'label' => '1'],
+                ['cols' => 4, 'label' => '2'],
+                ['cols' => 4, 'label' => '3'],
+            ],
             'three_two' => [
                 ['cols' => 4, 'label' => '1'],
                 ['cols' => 4, 'label' => '2'],
@@ -132,6 +137,7 @@ class MediaLayoutPicker extends Field
         return match ($layout) {
             'single', 'landscape', 'portrait' => 1,
             'two' => 2,
+            'three' => 3,
             'three_two', 'four_one' => 5,
             'three_three', 'four_two' => 6,
             default => 1,

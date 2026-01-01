@@ -109,6 +109,7 @@ class ProjectResource extends Resource
                                 : [
                                     'single' => 'Single (Hero)',
                                     'two' => 'Two (Split)',
+                                    'three' => 'Three (Split)',
                                     'three_two' => 'Three-Two (5-Up)',
                                     'three_three' => 'Three-Three (6-Up)',
                                     'four_one' => 'Four-One (5-Up)',

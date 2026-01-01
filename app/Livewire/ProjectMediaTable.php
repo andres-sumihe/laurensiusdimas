@@ -195,9 +195,7 @@ class ProjectMediaTable extends Component implements HasActions, HasForms, HasTa
                 ->acceptedFileTypes(['image/*', 'video/*'])
                 ->required(fn (callable $get) => $get('source_type') === 'file')
                 ->visible(fn (callable $get) => $get('source_type') === 'file')
-                ->columnSpanFull()
-                ->image()
-                ->imageEditor(),
+                ->columnSpanFull(),
             
             Forms\Components\TextInput::make('external_url')
                 ->label('Media URL')

@@ -111,6 +111,17 @@
             @endforeach
         </div>
 
+    @elseif($layout === 'three')
+        {{-- Three (Split) Layout: 3 items side by side with 16:9 ratio - Stack on mobile --}}
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-1 sm:gap-0 w-full">
+            @foreach($mediaItems->take(3) as $item)
+                <div class="sm:col-span-4 relative group overflow-hidden bg-neutral-100 aspect-video cursor-pointer"
+                     @click="$dispatch('open-lightbox', { url: '{{ $item['url'] }}', type: '{{ $item['type'] }}' })">
+                    @include('livewire.partials.media-item', ['item' => $item, 'alt' => $project->title])
+                </div>
+            @endforeach
+        </div>
+
     @elseif($layout === 'three_two')
         {{-- Three-Two (5-Up) Layout: Row 1 = 3 items, Row 2 = 2 items - Adjust for mobile --}}
         <div class="grid grid-cols-2 sm:grid-cols-12 gap-1 sm:gap-0 w-full">

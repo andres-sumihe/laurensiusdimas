@@ -75,8 +75,8 @@ class ManageSiteSettings extends Page
                                     ->visibility('public')
                                     ->preserveFilenames()
                                     ->maxSize(25600) // 25MB in KB
-                                    ->acceptedFileTypes(['image/gif', 'video/mp4', 'video/webm', 'video/quicktime'])
-                                    ->helperText('Upload video (MP4/WebM) or GIF for the landing intro. Max size: 25MB.')
+                                    ->acceptedFileTypes(['image/gif', 'video/*'])
+                                    ->helperText('Upload video (any supported format) or GIF for the landing intro. Max size: 25MB.')
                                     ->columnSpanFull(),
                                 
                                 Forms\Components\TextInput::make('hero_headline')

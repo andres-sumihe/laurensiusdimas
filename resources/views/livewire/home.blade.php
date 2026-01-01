@@ -907,6 +907,7 @@
                         overflow: hidden;
                         user-select: none;
                         gap: var(--gap);
+                        width: 100%;
                     }
                     @media (min-width: 640px) {
                         .marquee-clients { --gap: 2rem; }
